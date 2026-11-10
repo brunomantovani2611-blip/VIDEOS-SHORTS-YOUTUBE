@@ -185,10 +185,9 @@ def efectos(words):
         am = lp(np.abs(rng.normal(0, 1, ns(dur))), 6) * 6
         return x * (0.5 + am) * g
 
-    put(s, murmur(fr(281) - fr(114), 0.10), fr(114), pan=-0.1)
-    put(s, murmur(fr(480) - fr(281), 0.12), fr(281), pan=0.1)
-    for t0 in (fr(150), fr(250)):  # vítores
-        put(s, bp(noise(1.6), 600, 3500) * env(ns(1.6), 0.3, 1.0) * 0.25, t0)
+    # (sin murmullo continuo: el ruido filtrado sonaba a estática de radio bajo la voz)
+    for t0 in (fr(150), fr(250)):  # dos vítores cortos, suaves y graves, entre frases
+        put(s, lp(bp(noise(1.0), 250, 1200), 900) * np.hanning(ns(1.0)) * 0.12, t0)
     # --- motor del coche (pulsos graves) en el desfile y el giro
     def motor(dur, rpm_hz, g):
         n = ns(dur)
@@ -196,23 +195,26 @@ def efectos(words):
         x = lp(np.sign(np.sin(2 * np.pi * rpm_hz * t)) * (1 + 0.3 * rng.normal(0, 1, n)), 400)
         return x * g
 
-    put(s, motor(fr(281) - fr(202), 14, 0.05), fr(202))
+    put(s, motor(fr(281) - fr(202), 14, 0.03), fr(202))
     put(s, motor(fr(690) - fr(648), 22, 0.07), fr(648))
     # --- frenazo (barrido de ruido filtrado) en "frena"
     n = ns(1.1)
     sweep = bp(noise(1.1), 1800, 4200) * env(n, 0.02, 0.8)
     put(s, sweep * 0.45, fr(690), pan=0.2)
     # --- mecha de la bomba y explosión
-    put(s, hp(noise(fr(451) - fr(397)), 3000) * 0.06, fr(397), pan=0.3)
-    put(s, (lp(noise(2.2), 300) * 1.4 + bp(noise(2.2), 300, 2000) * 0.6) * env(ns(2.2), 0.003, 0.9), fr(451), 0.9)
+    # mecha: chispazos sueltos y bajos (no un siseo continuo)
+    t = fr(397)
+    while t < fr(449):
+        put(s, bp(noise(0.012), 2500, 6000) * np.hanning(ns(0.012)) * 0.12, t, pan=0.3)
+        t += rng.uniform(0.06, 0.14)
+    put(s, (lp(noise(1.2), 220) * 1.5 + bp(noise(1.2), 250, 1000) * 0.3) * env(ns(1.2), 0.003, 0.32), fr(451), 0.55)
     put(s, bp(noise(0.25), 2000, 6000) * env(ns(0.25), 0.001, 0.1), fr(425), 0.35)  # el "clonc" del rebote
     put(s, tone(420, 0.25, (1, 0.7, 0.5), 0.001, 0.08), fr(425), 0.25)
     # gritos tras la explosión (multitud asustada)
-    put(s, bp(noise(1.2), 500, 2500) * env(ns(1.2), 0.05, 0.6) * 0.25, fr(455))
     # --- dos estallidos secos (sin eco largo) en "Dos" y "disparos"
     for f0 in (831, 838):
         x = (bp(noise(0.35), 800, 5000) * 1.2 + lp(noise(0.35), 250) * 1.5) * env(ns(0.35), 0.0005, 0.12)
-        put(s, x, fr(f0), 0.8)
+        put(s, lp(x, 2500), fr(f0), 0.22)
     # --- palomas: aleteos
     for k in range(14):
         t0 = fr(840) + k * 0.06 + rng.uniform(0, 0.05)
@@ -225,7 +227,7 @@ def efectos(words):
     # --- fichas de dominó: un golpe de madera al chocar cada una
     for f0 in (1104, 1118, 1136, 1170, 1209, 1240):
         x = (tone(220, 0.3, (1, 0.4, 0.2), 0.001, 0.08) + bp(noise(0.3), 300, 1500) * 0.6) * env(ns(0.3), 0.001, 0.12)
-        put(s, x, fr(f0 + 9), 0.6)
+        put(s, x, fr(f0 + 9), 0.33)
     put(s, lp(noise(1.2), 200) * env(ns(1.2), 0.002, 0.7) * 0.6, fr(1249))  # la última cae al suelo
     # --- whoosh en cada corte y movimiento grande de cámara (pico en el cuadro del corte)
     for f0 in (114, 202, 281, 344, 381, 418, 451, 480, 584, 648, 722, 802, 858, 944, 1023, 1267, 1329):
@@ -272,6 +274,9 @@ def write(path, x):
         w.writeframes((x.T * 32767).astype(np.int16).tobytes())
 
 
+SFX_REF = -24.0  # nivel RMS de referencia de los efectos antes de la ganancia
+
+
 def main():
     words = json.load(open(os.path.join(AQUI, "..", "voz", "palabras.json")))["palabras"]
     v = read_voice()
@@ -280,14 +285,16 @@ def main():
     vr = rms_db(v[:, v[0] != 0]) if np.any(v) else -20
     # música ~9 dB y efectos ~8 dB por debajo de la voz (medido en RMS sobre toda la pieza)
     m *= db(vr - 9 - rms_db(m[:, np.any(m != 0, axis=0)]))
-    s *= db(vr - 8 - rms_db(s[:, np.any(s != 0, axis=0)]))
+    s *= db(vr - 10 - SFX_REF)  # ganancia fija (calibrada con la versión anterior): quitar ruido no sube el resto
     m *= duck(words)
     mix = v + m + s
     mix *= 0.9 / max(1e-9, np.max(np.abs(mix)))
     write(os.path.join(AQUI, "musica.wav"), m * 0.5)
     write(os.path.join(AQUI, "efectos.wav"), s * 0.5)
     write(os.path.join(AQUI, "mezcla.wav"), mix)
-    print(f"voz {vr:.1f} dB RMS · duración {N / SR:.2f} s · escrito mezcla.wav")
+    a, b = ns(fr(114)), ns(fr(480))
+    bg = m[:, a:b] + s[:, a:b]
+    print(f"voz {vr:.1f} dB RMS · fondo en el desfile y la bomba {rms_db(bg):.1f} dB RMS ({rms_db(bg) - vr:+.1f} dB) · {N / SR:.2f} s")
 
 
 if __name__ == "__main__":
