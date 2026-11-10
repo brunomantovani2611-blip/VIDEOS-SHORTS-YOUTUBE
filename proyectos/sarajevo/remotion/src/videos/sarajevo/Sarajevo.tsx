@@ -50,7 +50,7 @@ const Inner: React.FC<{ id: number; kit: Kit }> = ({ id, kit }) => {
     tone: new ToneMappingEffect({ mode: ToneMappingMode.NEUTRAL }),
     grade: new GradeEffect(GRADES.day, GRADE_STRENGTH.day),
   }), [camera, scene]);
-  useEffect(() => () => fx.ink.dispose(), [fx]);
+  useEffect(() => () => { try { (fx.ink as unknown as { dispose?: () => void }).dispose?.(); } catch { /* ya liberado */ } }, [fx]);
   const post = useMemo(() => {
     const kids: JSX.Element[] = [];
     if (on.ink) kids.push(<primitive key="ink" object={fx.ink} dispose={null} />);
