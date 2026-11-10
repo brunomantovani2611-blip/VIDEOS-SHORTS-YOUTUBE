@@ -142,8 +142,8 @@ def musica():
     ostinato(0.0, fr(114) - 0.05, 0.8)
     ostinato(fr(118), fr(451), 1.0)
     # golpe de orquesta en la explosión: acorde grave + timbal
-    put(m, sum(tone(NOTE(s - 12), 1.6, (1, 0.6, 0.3), 0.005, 1.2) for s in (0, 3, 7)), fr(451), 0.55)
-    put(m, kick(0.9), fr(451), 0.9)
+    put(m, sum(tone(NOTE(s - 12), 1.6, (1, 0.6, 0.3), 0.005, 1.2) for s in (0, 3, 7)), fr(451), 0.22)
+    put(m, kick(0.9), fr(451), 0.4)
     # tensión: bajo a negras y notas sueltas
     t = fr(470)
     while t < fr(828):
@@ -163,9 +163,9 @@ def musica():
     put(m, drone(NOTE(-24), fr(1329) - fr(944)), fr(944), 0.22)
     t, k = fr(944), 0
     while t < fr(1325):
-        put(m, snare(), t, 0.35 if k % 4 else 0.5, pan=0.15)
+        put(m, snare(), t, 0.15 if k % 4 else 0.22, pan=0.15)  # percusión ~7 dB más baja (pedido)
         if k % 2 == 0:
-            put(m, kick(0.35), t, 0.5)
+            put(m, kick(0.35), t, 0.22)
         if k % 8 == 0:
             put(m, pizz(NOTE(-17), 0.9), t, 0.6)
         t += BEAT / 2
@@ -274,6 +274,7 @@ def write(path, x):
         w.writeframes((x.T * 32767).astype(np.int16).tobytes())
 
 
+MUS_REF = -13.88  # nivel RMS de la música antes de la ganancia (versión 2, medido)
 SFX_REF = -24.0  # nivel RMS de referencia de los efectos antes de la ganancia
 
 
@@ -284,7 +285,7 @@ def main():
     s = efectos(words)
     vr = rms_db(v[:, v[0] != 0]) if np.any(v) else -20
     # música ~9 dB y efectos ~8 dB por debajo de la voz (medido en RMS sobre toda la pieza)
-    m *= db(vr - 9 - rms_db(m[:, np.any(m != 0, axis=0)]))
+    m *= db(vr - 9 - MUS_REF)  # ganancia fija: bajar la percusión no sube el resto de la música
     s *= db(vr - 10 - SFX_REF)  # ganancia fija (calibrada con la versión anterior): quitar ruido no sube el resto
     m *= duck(words)
     mix = v + m + s
