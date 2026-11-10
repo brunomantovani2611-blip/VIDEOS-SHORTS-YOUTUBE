@@ -234,7 +234,8 @@ def efectos(words):
     put(s, ding(784, 0.2) + ding(1175, 0.12), fr(617))                   # acepta
     for k in range(3):                                                   # tono de llamada
         put(s, lp(tone(440, 0.25, (1,), 0.01, 0.2) + tone(480, 0.25, (1,), 0.01, 0.2), 1500), fr(646) + k * 0.45, 0.08)
-    put(s, ding(660, 0.25, 0.5) + ding(523, 0.25, 0.8), fr(700))          # timbre de la puerta
+    put(s, ding(660, 0.25, 0.5), fr(700))
+    put(s, ding(523, 0.25, 0.8), fr(700) + 0.35)          # timbre de la puerta
     put(s, swish(0.4, 0.2, 400, 2000), fr(733))                          # bocado
     for k in range(8):                                                   # monedas cayendo en el montón
         put(s, ding(1800 + 300 * (k % 3), 0.06, 0.25), fr(782) + k * 0.07, pan=rng.uniform(-0.4, 0.4))
