@@ -83,6 +83,14 @@ def pizz(freq, dur=0.45):
     return _pl_cache[key]
 
 
+def suave(x):
+    """pizzicato sin el ataque metálico: filtro paso bajo a 1.6 kHz y ataque de 8 ms"""
+    y = lp(x, 1600)
+    n = min(len(y), ns(0.008))
+    y[:n] *= np.linspace(0, 1, n)
+    return y
+
+
 def tone(freq, dur, harm=(1, 0.5, 0.25), a=0.01, r=0.5):
     n = ns(dur)
     t = np.arange(n) / SR
@@ -133,7 +141,7 @@ def musica():
     def ostinato(t0, t1, g=1.0, oct=12):
         t, k = t0, 0
         while t < t1:
-            put(m, pizz(NOTE(motif[k % 8] + oct)), t, 0.5 * g, pan=0.25)
+            put(m, suave(pizz(NOTE(motif[k % 8] + oct))), t, 0.18 * g, pan=0.25)  # melodía «tin tin»: ~9 dB más baja y redonda (pedido)
             if k % 2 == 0:
                 put(m, pizz(NOTE(bass[k % 8]), 0.6), t, 0.7 * g, pan=-0.2)
             t += BEAT / 2
@@ -149,7 +157,7 @@ def musica():
     while t < fr(828):
         put(m, pizz(NOTE(-12), 0.7), t, 0.65, pan=-0.2)
         if int((t - fr(470)) / BEAT) % 4 == 3:
-            put(m, pizz(NOTE(6), 0.5), t, 0.35, pan=0.3)
+            put(m, suave(pizz(NOTE(6), 0.5)), t, 0.14, pan=0.3)
         t += BEAT
     # dron de suspenso desde el giro equivocado hasta los disparos
     put(m, drone(NOTE(-24), fr(831) - fr(648)), fr(648), 0.18)
