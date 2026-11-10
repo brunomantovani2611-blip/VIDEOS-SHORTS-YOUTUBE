@@ -1,0 +1,6 @@
+remotion/node_modules/
+remotion/out/
+final/
+voz/bruto.mp3
+voz/escuchar.mp3
+audio/*.wav
