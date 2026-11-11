@@ -11,6 +11,6 @@ mtp=$(echo "$M" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d['in
 mlra=$(echo "$M" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d['input_lra'])")
 mth=$(echo "$M" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d['input_thresh'])")
 ffmpeg -y -hide_banner -loglevel error -i remotion/out/subasta_mudo.mp4 -i audio/mezcla.wav \
-  -filter_complex "[1:a]loudnorm=I=-14:TP=-1.5:LRA=11:measured_I=$mi:measured_TP=$mtp:measured_LRA=$mlra:measured_thresh=$mth:linear=true,aresample=48000[a]" \
+  -filter_complex "[1:a]loudnorm=I=-14:TP=-1.5:LRA=11:measured_I=$mi:measured_TP=$mtp:measured_LRA=$mlra:measured_thresh=$mth:linear=true,aresample=48000,alimiter=limit=0.84:level=false[a]" \
   -map 0:v:0 -map "[a]" -c:v copy -c:a aac -b:a 192k -shortest -movflags +faststart final/subasta_imperio.mp4
 ffmpeg -hide_banner -i final/subasta_imperio.mp4 -af ebur128=peak=true -f null - 2>&1 | grep -E "I:|Peak:" | tail -2
