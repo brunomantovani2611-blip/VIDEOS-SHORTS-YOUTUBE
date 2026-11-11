@@ -16,7 +16,7 @@ const SH_FELT: C3 = [0.62, 0.62, 0.7];
 export type Build = "adult" | "stout" | "kid";
 export type Outfit = {
   jacket: string; pants: string; boots: string; hat?: string | null; belt?: string | null; buttons?: string; rifle?: boolean;
-  sash?: string; sword?: boolean; moustache?: string; skin?: string; head?: number; cap?: string; hair?: string; dress?: string;
+  laurel?: boolean; sash?: string; sword?: boolean; moustache?: string; skin?: string; head?: number; cap?: string; hair?: string; dress?: string;
   build?: Build;
   /** Alexander short: long spear instead of the rifle, round shield, cape, beard */
   spear?: boolean; shield?: string; cape?: string; beard?: string;
@@ -351,7 +351,21 @@ const hatBehind = (p: Pen, o: Outfit, H: Blob, cx: number, hc: number, light: nu
   p.inkRing(bb, ow * 0.85, thick);
 };
 
+/** corona de laurel (Roma): dos ramas de hojas que abrazan la cabeza por arriba de las orejas */
+const laurelOn = (p: Pen, H: Blob, cx: number, hc: number) => {
+  const W = 2 * H.a, HH = 2 * H.b, u = W / 100, a = H.rot, y0 = hc - H.b + 0.34 * HH;
+  for (const s of [-1, 1]) for (let i = 0; i < 6; i++) {
+    const t = i / 5, ang = rad(-160 + 70 * t) , rx = 0.53 * W, ry = 0.3 * HH;
+    const x = cx + s * Math.cos(ang) * -rx, y = y0 + Math.sin(ang) * ry * 0.9;
+    const [lx, ly] = rotPts([[x, y]], a, cx, hc)[0];
+    p.ell(lx, ly, 9 * u, 4.2 * u, i % 2 ? "#4a9a3a" : "#5ab04a", 1.6 * u, 0, 360, s * (35 + 40 * t) + (a * 180) / Math.PI);
+  }
+};
 const hatOn = (p: Pen, o: Outfit, hp: P2[], H: Blob, cx: number, hc: number, light: number, seed: number, facing: number, side: boolean) => {
+  hatOn0(p, o, hp, H, cx, hc, light, seed, facing, side);
+  if (o.laurel) laurelOn(p, H, cx, hc);
+};
+const hatOn0 = (p: Pen, o: Outfit, hp: P2[], H: Blob, cx: number, hc: number, light: number, seed: number, facing: number, side: boolean) => {
   const W = 2 * H.a, HH = 2 * H.b, u = W / 100, crown = hc - H.b, ow = 0.85 * 5 * u;
   const a = H.rot + rad(4 * (rnd(seed, 20) - 0.5)); // tilt with the head, +-2 deg extra
   const R = (pts: P2[]) => rotPts(pts, a, cx, hc);
