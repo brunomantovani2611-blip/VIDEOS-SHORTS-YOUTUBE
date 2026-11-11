@@ -10,6 +10,9 @@ import { LIGHTS, LOOK, LightPreset } from "./lights";
 import { TONE, CHAR, LFB, untone } from "./shade";
 import { NOINK } from "./ink";
 import { Pool, Actor, Fx, stage } from "./cast";
+import { Figura } from "./figura3d";
+/** personajes como muñecos 3D (true) o como tarjetas dibujadas (false) */
+export const FIG3D = true;
 import { FPS, D0, SHOTS, camAt, V3, ShotDef, BACK_Z, Decoy, decoysAt, RIO_Z0, RIO_Z1, CALLE, CUARTO_X, OFICINA_X, PLATO_X, MESA_Z } from "./story";
 
 export const loadKit = () => Promise.resolve({} as Kit);
@@ -256,6 +259,7 @@ export class World {
   root = new THREE.Group();
   private pool = new Pool();
   private actors: Actor[] = [];
+  private figs = new Map<string, Figura>();
   private fxs: Fx[] = [];
   private hemi: THREE.HemisphereLight; private sun: THREE.DirectionalLight;
   private sky: THREE.Mesh; private skyMat: THREE.ShaderMaterial;
@@ -429,8 +433,24 @@ export class World {
     this.frustum.setFromProjectionMatrix(this.m4.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
     let ai = 0;
     const used: Actor[] = [];
+    const figUsed = new Set<Figura>(), figCount = new Map<string, number>();
     for (const p of st.places) {
       const sc2 = p.scale ?? 1;
+      if (FIG3D && p.fig) {
+        const n = figCount.get(p.fig.okey) ?? 0; figCount.set(p.fig.okey, n + 1);
+        const k2 = `${p.fig.okey}#${n}`;
+        let fg = this.figs.get(k2);
+        if (!fg) { fg = new Figura(p.fig.o, k2); this.figs.set(k2, fg); this.root.add(fg.root); }
+        figUsed.add(fg);
+        fg.root.visible = true;
+        fg.root.position.set(p.x, p.y, p.z);
+        const toCam = Math.atan2(cam.position.x - p.x, cam.position.z - p.z);
+        const dirYaw = p.fig.dir !== undefined ? Math.atan2(p.fig.dir, 0) : toCam;
+        fg.root.rotation.set(0, p.fig.dir !== undefined ? toCam + 0.55 * Math.sign(Math.sin(dirYaw - toCam)) : toCam, 0);
+        fg.root.scale.setScalar(sc2);
+        fg.update(p.fig);
+        continue;
+      }
       if (!this.frustum.intersectsSphere(this.sph.set(this.v.set(p.x, p.y + 1.1 * sc2, p.z), 3.5))) continue;
       const a = this.actor(ai++);
       const [w, h, k] = p.size ?? [300, 500, 0.5];
@@ -443,6 +463,7 @@ export class World {
       used.push(a);
     }
     for (let i = ai; i < this.actors.length; i++) this.actors[i].mesh.visible = false;
+    for (const fg of this.figs.values()) if (!figUsed.has(fg)) fg.root.visible = false;
     let fi = 0;
     const fused: Fx[] = [];
     for (const p of st.fx) {
