@@ -15,7 +15,6 @@ Los agentes federales llegaron a su casa y, a los dieciséis años, se convirti�
 
 📚 Fuentes:
 • Departamento de Justicia de EE. UU. (2000) – comunicado sobre la condena de un menor por intrusiones en la NASA y el Departamento de Defensa
-• PBS Frontline – entrevista a Jonathan James (2001)
 • Wikipedia – «Jonathan James»
 
 Animación y música originales. Narración con voz sintética. El personaje es una caricatura, no un retrato.
