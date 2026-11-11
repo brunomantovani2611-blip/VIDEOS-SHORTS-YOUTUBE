@@ -346,7 +346,7 @@ def main():
     s = efectos(words)
     vr = rms_db(v[:, v[0] != 0]) if np.any(v) else -20
     # música ~9 dB y efectos ~8 dB por debajo de la voz (medido en RMS sobre toda la pieza)
-    m *= db(vr - 18 - rms_db(m))  # música ~18 dB por debajo de la voz (pedido: la mitad de volumen que antes, -12 dB)
+    m *= db(vr - 26 - rms_db(m))  # música ~26 dB por debajo de la voz (pedido: bajarla mucho; antes -18 y -12)
     s *= db(vr - 13 - rms_db(s))
     m *= duck(words)
     mix = v + m + s
