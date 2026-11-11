@@ -1,32 +1,29 @@
-# Publicar: «Arístides, al que echaron por ser demasiado justo»
+# La guerra del emú — textos para publicar
 
-## Título (elige uno; máx. 70 caracteres)
-1. **Lo echaron de Atenas por ser demasiado honesto… y él mismo lo votó** ← recomendado
-2. Le pidieron que escribiera su propio nombre para echarlo
-3. El político más honesto de Atenas y el campesino que lo echó
+**Título (recomendado):** Australia mandó al ejército contra unos pájaros… y perdió
 
-## Descripción
-```
-En la antigua Atenas había una votación muy curiosa: una vez al año, los ciudadanos podían echar a alguien de la ciudad durante diez años escribiendo su nombre en un pedazo de cerámica (un «ostracon»; de ahí viene la palabra «ostracismo»).
+Alternativas:
+- El ejército que perdió una guerra contra emúes
+- 10.000 balas contra 20.000 emúes: ¿quién ganó?
 
-A un político lo llamaban «Arístides el Justo» por lo honesto que era. El día de la votación, un campesino que no sabía escribir se le acercó sin reconocerlo y le pidió que escribiera «Arístides» en su pedazo. «¿Y qué le hizo ese hombre?», le preguntó Arístides. «Nada, ni siquiera lo conozco. Pero estoy harto de escuchar que todos le dicen el Justo».
+**Descripción:**
+En 1932, unos veinte mil emúes estaban destrozando los cultivos de trigo de los granjeros de Australia Occidental. El gobierno mandó al ejército: el mayor Meredith, dos soldados y dos ametralladoras Lewis.
 
-Arístides no dijo nada: escribió su propio nombre y se lo devolvió. Ese año lo echaron de Atenas. Pero dos años después, la ciudad tuvo que llamarlo de vuelta para pelear contra los persas.
+Parecía fácil. Pero cada vez que disparaban, los emúes se separaban en grupitos y salían corriendo para todos lados. Probaron perseguirlos en un camión, pero los emúes eran más rápidos. Y en el peor momento, la ametralladora se atascó.
 
-📚 Fuentes:
-• Plutarco – «Vida de Arístides», 7-8
-• Wikipedia – «Arístides» y «Ostracismo»
+Después de semanas habían gastado casi diez mil balas, y los emúes seguían ahí. El mayor llegó a decir que, con soldados que aguantaran las balas como esos pájaros, podría enfrentar a cualquier ejército del mundo. El ejército se retiró… y a esto se lo conoce como «la guerra del emú».
 
 Animación y música originales. Narración con voz sintética.
 
-#shorts #viral #curiosidades #parati #fyp #datoscuriosos #sabiasque #historia #animacion #tendencia #grecia #atenas
-```
+Fuentes: «Emu War», Wikipedia; Murray Johnson, «Feathered foes» (Journal of Australian Studies, 2006).
 
-## Etiquetas
-arístides, arístides el justo, ostracismo, atenas, democracia ateniense, antigua grecia, persas, historia de grecia, curiosidades, datos curiosos, historia animada
+**Hashtags:**
+#shorts #viral #curiosidades #parati #fyp #datoscuriosos #sabiasque #historia #animacion #tendencia #australia #emu
 
-## Ajustes en YouTube Studio
-- **Categoría:** Educación. **Hecho para niños:** No.
-- **Contenido alterado o sintético:** no hace falta (caricatura; la voz sintética está mencionada en la descripción).
-- **Miniatura:** Arístides con el pedazo de cerámica con su nombre (cuadro ~975) o el sello «EXPULSADO» (cuadro ~1030).
-- **Comentario fijado:** «¿Vos habrías escrito tu propio nombre? 👇»
+**Etiquetas:** guerra del emú, emu war, emúes, australia 1932, mayor meredith, ametralladora lewis, historia rara, historia de australia, curiosidades, datos curiosos, historia animada
+
+**En YouTube Studio:**
+- Categoría: Educación
+- Hecho para niños: No
+- Miniatura: el marcador «EMÚES 1 – EJÉRCITO 0» con los emúes festejando, o el soldado con el «¡CLIC!»
+- Comentario fijado: «¿Quién creés que ganaría hoy? 👇»
