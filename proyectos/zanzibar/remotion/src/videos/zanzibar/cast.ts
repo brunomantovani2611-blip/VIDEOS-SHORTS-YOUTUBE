@@ -4,11 +4,11 @@
 // los soldados de 1914 y los efectos (bomba, explosión, fogonazos, palomas, mapa).
 import * as THREE from "three";
 import { Pen, bodyFront, bodySide, fxBurst, fxContact, fxShadow, fxPuff, fxStars, Outfit, Expr, FrontOpts, SideOpts, INK, SKINS } from "./toon";
-import { FPS, D0, SHOTS, smooth, clamp01, lin, BACK_Z, CALLE, CUARTO_X, OFICINA_X, PLATO_X, MESA_Z, RZ, MX, MZ, TZ, TABLA, SHIP1, SHIP6, SHIP8, bob } from "./story";
+import { FPS, D0, SHOTS, smooth, clamp01, lin, BACK_Z, CALLE, CUARTO_X, OFICINA_X, PLATO_X, MESA_Z, RZ, PX, PAL, MAR, MASTIL, CONS, PASEO_Z, TRONO_Z, GLASGOW, FLOTA, CANONES, runX } from "./story";
 import { NOINK } from "./ink";
 import { cardShade, blobMaterial, CARD_K } from "./cardshade";
-import { GATO, ALEMAN, ALEMAN2, MARINERO, MARINERO2, OFICIAL } from "./elenco";
-import { fxOndas, fxBocadillo, fxSigno, fxSello, fxNombreL, fxCartel, fxHumo, fxAgua, fxZzz } from "./efectos";
+import { KHALID, ASKARI, ASKARI2, ASKARI3, CONSUL, ALMIRANTE, MARINERO, MARINERO2 } from "./elenco";
+import { fxOndas, fxBocadillo, fxSigno, fxSello, fxNombreL, fxCartel, fxHumo, fxAgua, fxFuego, fxCronometro, fxFactura, fxUltimatum, fxUnion } from "./efectos";
 import { fxFogonazo } from "./efectos";
 
 // ---------------- canvas pool ----------------
@@ -257,136 +257,164 @@ const icon = (out: Stage, cam: CamInfo, f: number, f0: number, key: string, cw: 
 };
 const signo = (out: Stage, cam: CamInfo, f: number, f0: number, s: string, x: number, y: number, z: number, sz = 0.24) =>
   icon(out, cam, f, f0, "signo" + s, 160, 220, (p) => fxSigno(p, s), x, y, z, sz, 0.1);
-/** ondas que salen del silbato (o del teléfono) hacia un lado: dir = +1 hacia +x */
-const ondas = (out: Stage, cam: CamInfo, f: number, f0: number, f1: number, x: number, y: number, z: number, w = 0.7, rot = 0) => {
-  if (f < f0 || f >= f1) return;
-  const u = q(((f - f0) / 18) % 1, 18);
-  fxAt(out, cam, `ondas${u}`, 400, 300, (p) => fxOndas(p, u), x, y, z, w, w * 0.75, 0.3, rot);
-};
-const W_C: Who = { i: 1, o: GATO, okey: "gato" };
-const W_A1: Who = { i: 2, o: ALEMAN, okey: "aleman" };
-const W_A2: Who = { i: 3, o: ALEMAN2, okey: "aleman2" };
+const W_K: Who = { i: 1, o: KHALID, okey: "khalid" };
+const W_A: Who[] = [ASKARI, ASKARI2, ASKARI3].map((o, k) => ({ i: 10 + k, o, okey: "askari" + k }));
+const W_C: Who = { i: 2, o: CONSUL, okey: "consul" };
+const W_R: Who = { i: 3, o: ALMIRANTE, okey: "almirante" };
 const W_M1: Who = { i: 4, o: MARINERO, okey: "marinero" };
 const W_M2: Who = { i: 5, o: MARINERO2, okey: "marinero2" };
-const W_O: Who = { i: 6, o: OFICIAL, okey: "oficial" };
 const L = (f: number, w: Who) => lidAt(T(f), w.i);
-
-type GatoOpts = { mode: "stand" | "angry" | "sleep" | "jump"; expr?: Expr; phase?: number; yaw?: number; look?: number; turn?: number };
-/** el gato 3D: sentado, enojado (erizado), durmiendo o saltando */
-const gato = (cam: CamInfo, out: Stage, f: number, x: number, z: number, o: GatoOpts, sc = 1, y = D0, shadow = true) => {
-  const sp = o.mode === "angry" ? 1.0 : o.mode === "jump" ? 1.4 : o.mode === "sleep" ? 0.25 : 0.5;
-  const phase = o.phase ?? (T(f) * sp) % 1;
-  out.places.push({ key: "gato", draw: () => {}, x, y, z, scale: sc,
-    fig: { o: W_C.o, okey: W_C.okey, mode: o.mode, expr: o.expr ?? "neutral", blink: o.mode === "sleep" ? 1 : L(f, W_C), look: o.look ?? 0, phase, yaw: o.yaw, turn: o.turn } });
-  if (shadow) blob(out, x, y, z, sc * 0.7);
-};
-const persona = (cam: CamInfo, out: Stage, who: Who, x: number, z: number, f: number, mode: string, expr: Expr, o: { yaw?: number; look?: number; sp?: number; sc?: number; y?: number; shadow?: boolean } = {}) => {
+const persona = (cam: CamInfo, out: Stage, who: Who, x: number, z: number, f: number, mode: string, expr: Expr, o: { yaw?: number; look?: number; sp?: number; sc?: number; y?: number; shadow?: boolean; turn?: number; ph?: number } = {}) => {
   const sc = o.sc ?? 1, y = o.y ?? D0;
   out.places.push({ key: "persona", draw: () => {}, x, y, z, scale: sc,
-    fig: { o: who.o, okey: who.okey, mode, expr, blink: L(f, who), look: o.look ?? 0, phase: (T(f) * (o.sp ?? 1.5) + hh(who.i, 3)) % 1, yaw: o.yaw } });
+    fig: { o: who.o, okey: who.okey, mode, expr, blink: L(f, who), look: o.look ?? 0, phase: o.ph ?? (T(f) * (o.sp ?? 1.5) + hh(who.i + x * 7, 3)) % 1, yaw: o.yaw, turn: o.turn } });
   if (o.shadow !== false) blob(out, x, y, z, sc);
 };
-/** humo negro que sube de un barco que se hunde */
-const humo = (out: Stage, cam: CamInfo, f: number, f0: number, x: number, z: number, n = 10, s = 1, y0 = D0 + 3) => {
+/** columna de humo: bocanadas que suben y se abren (oscuro) */
+const humo = (out: Stage, cam: CamInfo, f: number, f0: number, x: number, z: number, n = 10, s = 1, y0 = D0 + 3, drift = 1.5) => {
   for (let k = 0; k < n; k++) {
-    const fk = f0 + k * 5, u = ((f - fk) / 40);
+    const fk = f0 + k * 5, u = (f - fk) / 40;
     if (u < 0) continue;
-    const uu = u % 1, rep = Math.floor(u);
-    if (rep > 3) continue;
-    fxAt(out, cam, `humo${q(uu, 20)}`, 300, 300, (p) => fxHumo(p, q(uu, 20)), x + (hh(k, 3) - 0.5) * 3 * s + uu * 1.5 * s, y0 + uu * 7 * s, z + (hh(k, 4) - 0.5) * 2, 4.5 * s * (0.6 + uu), 4.5 * s * (0.6 + uu), 1, 0, true);
+    const uu = u % 1;
+    fxAt(out, cam, `humo${q(uu, 20)}`, 300, 300, (p) => fxHumo(p, q(uu, 20)), x + (hh(k, 3) - 0.5) * 2 * s + uu * drift * s, y0 + uu * 7 * s, z + (hh(k, 4) - 0.5) * 2, 4.5 * s * (0.6 + uu), 4.5 * s * (0.6 + uu), 1, 0, true);
   }
 };
-/** explosión de torpedo: fogonazo naranja + columna de agua */
-const torpedo = (out: Stage, cam: CamInfo, f: number, f0: number, x: number, z: number, s = 1) => {
-  const u = (f - f0) / 24;
-  if (u < 0 || u >= 1) return;
-  if (f - f0 < 6) fxAt(out, cam, `fog${q((f - f0) / 6, 6)}`, 300, 300, (p) => fxFogonazo(p, q((f - f0) / 6, 6)), x, D0 + 1.5 * s, z, 5 * s, 5 * s, 2);
-  fxAt(out, cam, `agua${q(u, 24)}`, 300, 400, (p) => fxAgua(p, q(u, 24)), x, D0 + 4.5 * s, z, 7 * s, 9.3 * s, 1.5, 0, true);
+/** llamas en bucle */
+const fuego = (out: Stage, cam: CamInfo, f: number, f0: number, x: number, y: number, z: number, s = 1, k = 0) => {
+  if (f < f0) return;
+  const g = Math.min(1, (f - f0) / 8), u = q(((f / 16) + hh(k, 2)) % 1, 16);
+  fxAt(out, cam, `fuego${u}`, 300, 400, (p) => fxFuego(p, u), x, y + 1.0 * s * g * 0.75, z, 1.5 * s * g, 2.0 * s * g, 0.5);
 };
-const yawTo = (x: number, z: number, tx: number, tz: number) => Math.atan2(tx - x, tz - z);
+/** explosión: fogonazo, bocanada y (en el agua) columna */
+const explota = (out: Stage, cam: CamInfo, f: number, f0: number, x: number, y: number, z: number, s = 1, agua = false) => {
+  const n = f - f0;
+  if (n < 0 || n >= 26) return;
+  if (n < 7) fxAt(out, cam, `fog${q(n / 7, 7)}`, 300, 300, (p) => fxFogonazo(p, q(n / 7, 7)), x, y, z, 3.2 * s, 3.2 * s, 1.2);
+  if (agua) { const u = q(n / 26, 26); fxAt(out, cam, `agua${u}`, 300, 400, (p) => fxAgua(p, u), x, y + 2.6 * s, z, 4.5 * s, 6 * s, 1.0, 0, true); }
+  else if (n >= 2) { const u = q((n - 2) / 24, 24); fxAt(out, cam, `puff${u}`, 300, 300, (p) => fxPuff(p, u), x, y + 0.4 * s, z, 3.6 * s, 3.6 * s, 0.9, 0, true); }
+};
+/** cañonazo de un buque de costado: fogonazo y humo blanco de pólvora */
+const andanada = (out: Stage, cam: CamInfo, f: number, f0: number, x: number, z: number, s: number) => {
+  for (let k = 0; k < 3; k++) {
+    const n = f - f0 - k * 2;
+    if (n < 0 || n >= 40) continue;
+    const gx = x + (k - 1) * 4.5 * s, gz = z - 2.2 * s;
+    if (n < 6) fxAt(out, cam, `fog${q(n / 6, 6)}`, 300, 300, (p) => fxFogonazo(p, q(n / 6, 6)), gx, D0 + 1.5 * s, gz, 2.6 * s, 2.6 * s, 0.5);
+    const u = q(n / 40, 40);
+    fxAt(out, cam, `puff${u}`, 300, 300, (p) => fxPuff(p, u), gx + u * 1.5, D0 + 1.6 * s + u * 1.6, gz - 1.5 * u, (2.4 + 4 * u) * s, (2.4 + 4 * u) * s, 0.3, 0, true);
+  }
+};
+/** el humo de las chimeneas de la flota */
+const chimeneas = (out: Stage, cam: CamInfo, f: number) => {
+  for (const [x, z, k, s] of FLOTA) for (const dz of k === "crucero" ? [1.3, -1.6] : [-0.5]) {
+    for (let j = 0; j < 3; j++) {
+      const u = ((f / 50) + j / 3 + hh(x, 1)) % 1, uq = q(u, 16);
+      fxAt(out, cam, `humoC${uq}`, 300, 300, (p) => fxHumo(p, uq), x - dz * s + u * 2.2, D0 + (k === "crucero" ? 6.6 : 5.3) * s + u * 2.5, z, (1.2 + 2 * u) * s, (1.2 + 2 * u) * s, 0.4, 0, true);
+    }
+  }
+};
+/** fuegos del palacio después del bombardeo (tomas 13, 14 y 16) */
+const FUEGOS: [number, number, number, number][] = [[PAL.x - 4.5, 3.6, 662, 1.8], [PAL.x + 2.0, 6.8, 668, 2.0], [PAL.x - 1.5, 0.6, 674, 1.6], [PAL.x + 5.0, 3.8, 678, 1.8], [PAL.x - 5.5, 6.9, 684, 1.7], [MAR.x - 5.8, 3.8, 688, 1.4], [PAL.x + 0.5, 9.2, 676, 2.2]];
+const palacioArde = (out: Stage, cam: CamInfo, f: number, mul = 1) => {
+  for (const [k, [x, y, f0, s]] of FUEGOS.entries()) fuego(out, cam, f, f0, x, D0 + y, PAL.z + 1.7, s * mul, k);
+  humo(out, cam, f, 660, PAL.x - 2, PAL.z - 3, 12, 1.4, D0 + PAL.h, 2.5);
+  humo(out, cam, f, 672, PAL.x + 4, PAL.z - 5, 10, 1.1, D0 + PAL.h, 2.0);
+};
+
+// ---------------- el salón del trono (+x a la izquierda del cuadro) ----------------
+const cuarto = (id: number, f: number, cam: CamInfo, out: Stage) => {
+  if (id !== 3) return;
+  const cx = CUARTO_X;
+  for (const [k, s] of [[0, -1], [1, 1]] as [number, number][]) persona(cam, out, W_A[k], cx + s * 1.75, TRONO_Z - 0.6, f, "stand", f < 217 ? "neutral" : "grin", { look: -s });
+  if (f < 197) {
+    const x = cx - 2.9 + 2.9 * smooth((f - 165) / 32);
+    persona(cam, out, W_K, x, TRONO_Z - 1.5, f, "stroll", "grin", { yaw: Math.PI / 2 - 0.5, sp: 1.6 });
+  } else if (f < 210) {
+    const u = smooth((f - 197) / 13);
+    persona(cam, out, W_K, cx, TRONO_Z - 1.5 + 1.4 * u, f, "stand", "smile", { y: D0 + 0.25 * u, yaw: Math.PI * (1 - u) * 0.3, shadow: false });
+  } else persona(cam, out, W_K, cx, TRONO_Z + 0.02, f, "sit", f < 229 ? "grin" : "laugh", { y: D0 + 0.8, shadow: false });
+  icon(out, cam, f, 176, "nKhalid", 640, 200, (p) => fxNombreL(p, "KHALID"), cx - 0.05, D0 + 2.75, TRONO_Z - 1.0, 1.05, 0, 0.3);
+  icon(out, cam, f, 229, "nuevoSultan", 520, 220, (p) => fxSello(p, "¡SULTÁN!", "#c9963a"), cx + 0.9, D0 + 1.55, TRONO_Z - 1.4, 0.95, 0, 0.3);
+};
+const oficina = (_id: number, _f: number, _cam: CamInfo, _out: Stage) => {};
 
 // ---------------- el plató azul (+x a la izquierda del cuadro) ----------------
 const plato = (id: number, f: number, cam: CamInfo, out: Stage) => {
   const x = PLATO_X, zc = BACK_Z - 1.6;
-  if (id === 2) {
-    if (f >= 128) stand(cam, out, W_A1, x + 0.75, zc + 0.2, { expr: f < 165 ? "neutral" : "nervous", blink: L(f, W_A1), look: -1 }, Math.max(0.01, boing(f, 128)));
-    if (f >= 132) stand(cam, out, W_A2, x - 0.75, zc + 0.2, { expr: f < 165 ? "neutral" : "nervous", blink: L(f, W_A2), look: 1 }, Math.max(0.01, boing(f, 132)));
-    const n1 = Math.round(2200 * smooth((f - 136) / 22));
-    icon(out, cam, f, 134, `trip${n1}`, 560, 240, (p) => fxCartel(p, "TRIPULANTES", n1.toLocaleString("es-AR"), "#2f4a8a"), x, D0 + 2.75, zc - 0.3, 1.5, 0, 0.05);
-    const n2 = Math.round(114 * smooth((f - 170) / 22));
-    icon(out, cam, f, 166, `sobre${n2}`, 560, 240, (p) => fxCartel(p, "SOBREVIVIENTES", String(n2), "#b8322f"), x, D0 + 2.1, zc - 0.35, 1.5, 0, 0.05);
+  if (id === 4 || id === 5) fxAt(out, cam, "union", 600, 360, (p) => fxUnion(p), x, D0 + 2.9, BACK_Z - 0.3, 2.3, 1.38, 0);
+  if (id === 4) {
+    if (f >= 254) persona(cam, out, W_C, x + 0.85, zc + 0.2, f, f < 268 ? "stand" : "point", f < 257 ? "neutral" : "stern", { sc: Math.max(0.01, boing(f, 254)), look: -1 });
+    if (f >= 258) persona(cam, out, W_R, x - 0.85, zc + 0.2, f, f < 268 ? "stand" : "fist", f < 268 ? "stern" : "shout", { sc: Math.max(0.01, boing(f, 258)), look: 1 });
+    icon(out, cam, f, 268, "sinPermiso", 520, 220, (p) => fxSello(p, "SIN PERMISO", "#d42f2f"), x, D0 + 1.85, zc - 0.6, 1.1, 0, 0.3);
   }
   if (id === 5) {
-    gato(cam, out, f, x, zc - 0.4, { mode: "stand", expr: f < 381 ? "neutral" : "smile_closed" }, 1.5);
-    if (f >= 368) stand(cam, out, W_M1, x + 0.85, zc + 0.3, { expr: "grin", blink: L(f, W_M1), look: -1 }, Math.max(0.01, boing(f, 368)));
-    if (f >= 371) stand(cam, out, W_M2, x - 0.85, zc + 0.3, { expr: "laugh", blink: L(f, W_M2), look: 1 }, Math.max(0.01, boing(f, 371)));
-    icon(out, cam, f, 380, "oscar", 640, 200, (p) => fxNombreL(p, "OSCAR"), x, D0 + 1.45, zc - 0.5, 0.9, 0, 0.3);
+    persona(cam, out, W_R, x - 0.55, zc + 0.3, f, "hold", "stern", { look: 1 });
+    persona(cam, out, W_C, x + 0.75, zc + 0.3, f, f < 333 ? "stand" : "point", "stern", { look: -1 });
+    icon(out, cam, f, 333, "ultimatum", 460, 560, (p) => fxUltimatum(p), x - 0.5, D0 + 1.0, zc - 0.25, 0.72, 0.05, 0.3);
   }
-  if (id === 12) {
-    gato(cam, out, f, x, zc - 0.3, { mode: f < 865 ? "stand" : "jump", expr: f < 865 ? "smile" : "laugh" }, 1.6);
-    stand(cam, out, W_M1, x + 1.0, zc + 0.3, { expr: f < 860 ? "grin" : "laugh", blink: L(f, W_M1), look: -1 });
-    stand(cam, out, W_O, x - 1.0, zc + 0.3, { expr: f < 860 ? "smile" : "grin", blink: L(f, W_O), look: 1 });
-    icon(out, cam, f, 866, "nombreSam", 640, 200, (p) => fxNombreL(p, "SAM, EL INSUMERGIBLE"), x, D0 + 2.3, zc - 0.5, 1.6, 0, 0.3);
+  if (id === 15) {
+    const m = 38 * smooth((f - 762) / 26);
+    const mq = Math.round(m);
+    icon(out, cam, f, 760, `crono${mq}`, 400, 460, (p) => fxCronometro(p, mq), x, D0 + 2.45, zc - 0.2, 1.55, 0, 0.05);
+    const yay = f >= 816;
+    persona(cam, out, W_R, x, zc + 0.5, f, yay ? "arms_up" : "stand", yay ? "laugh" : "smile", { sp: 1.2 });
+    persona(cam, out, W_M1, x + 1.05, zc + 0.3, f, yay ? "arms_up" : "stand", yay ? "laugh" : "grin", { look: -1, sp: 1.3 });
+    persona(cam, out, W_M2, x - 1.05, zc + 0.3, f, yay ? "arms_up" : "stand", yay ? "laugh" : "grin", { look: 1, sp: 1.1 });
+    icon(out, cam, f, 819, "fin", 520, 220, (p) => fxSello(p, "¡FIN!", "#2f9a4a"), x - 0.75, D0 + 1.35, zc - 0.7, 0.9, 0, 0.3);
   }
 };
-const cuarto = (_id: number, _f: number, _cam: CamInfo, _out: Stage) => {};
-const oficina = (_id: number, _f: number, _cam: CamInfo, _out: Stage) => {};
 
-// ---------------- el mar y la tierra firme (+x a la derecha del cuadro) ----------------
-const enTabla = (cam: CamInfo, out: Stage, f: number, o: GatoOpts, sc = 1) =>
-  gato(cam, out, f, TABLA[0] + 0.05, TABLA[1] + 0.02, { yaw: undefined, ...o }, sc, D0 + 0.06 + bob(f), false);
+// ---------------- la costa de Zanzíbar ----------------
 const calle = (id: number, f: number, cam: CamInfo, out: Stage) => {
-  if (id === 1) {
-    humo(out, cam, f, 20, SHIP1[0], SHIP1[1], 14, 1.2);
-    for (const [f0, dx] of [[30, -3], [52, 4], [83, 0]] as [number, number][]) torpedo(out, cam, f, f0, SHIP1[0] + dx, SHIP1[1] + 1.5, 0.8);
-  }
-  if (id === 3 || id === 7 || id === 11) {
-    // humo del naufragio a lo lejos
-    humo(out, cam, f, id === 3 ? 180 : id === 7 ? 470 : 700, MX + 4, MZ - 60, 8, 1.3, D0);
-  }
-  if (id === 3) {
-    enTabla(cam, out, f, { mode: "stand", expr: f < 232 ? "dazed" : f < 269 ? "neutral" : "stern", look: f < 232 ? 0 : Math.round(Math.sin(f * 0.07)) });
-    if (f >= 216) signo(out, cam, f, 216, "?", TABLA[0] + 0.35, D0 + 0.95, TABLA[1], 0.2);
-  }
-  if (id === 4) {
-    const bx = MX + Math.max(1.75, 4.6 - 0.07 * (f - 283)), by = D0 + 0.45 + bob(f, 2) * 0.6, bz = TABLA[1] + 0.3;
-    persona(cam, out, W_M1, bx - 0.15, bz, f, "sit", f < 340 ? "smile" : "grin", { y: by - 0.58, look: -1, shadow: false });
-    persona(cam, out, W_M2, bx + 0.75, bz - 0.1, f, "sit", "grin", { y: by - 0.58, look: -1, shadow: false });
-    if (f < 345) enTabla(cam, out, f, { mode: "stand", expr: f < 330 ? "nervous" : "smile", look: 1 });
-    else {
-      const u = clamp01((f - 345) / 10), x = TABLA[0] + (bx - 0.8 - TABLA[0]) * u, y = D0 + 0.06 + (by - D0 + 0.0) * u + Math.sin(u * Math.PI) * 0.6;
-      gato(cam, out, f, x, TABLA[1] + 0.15 * u, { mode: u < 1 ? "jump" : "stand", expr: "smile_closed", phase: u < 1 ? 0.25 : undefined, look: 0 }, 1, y, false);
-    }
-  }
-  if (id === 6) {
-    if (f >= 455) humo(out, cam, f, 456, SHIP6[0], SHIP6[1], 12, 0.9, D0 + 2);
-    torpedo(out, cam, f, 455, SHIP6[0] + 0.5, SHIP6[1] + 1.2, 0.8);
-  }
+  if (id === 1 || id === 11) chimeneas(out, cam, f);
+  if (id === 1) icon(out, cam, f, 84, "masCorta", 560, 240, (p) => fxCartel(p, "LA GUERRA", "MÁS CORTA", "#b8322f"), PX + 2.5, D0 + 8.9, -166, 5.2, 0, 0.05);
+  if (id === 2) icon(out, cam, f, 142, "hamad", 560, 240, (p) => fxCartel(p, "SULTÁN HAMAD", "1857 – 1896", "#2a2730"), MASTIL[0] - 0.6, D0 + 8.3, -199, 3.0, 0, 0.05);
   if (id === 7) {
-    enTabla(cam, out, f, { mode: "stand", expr: f < 506 ? "neutral" : "smile_closed", look: 0 });
-    icon(out, cam, f, 508, "otravez", 520, 220, (p) => fxSello(p, "¡OTRA VEZ!", "#2f9a4a"), TABLA[0] + 0.05, D0 + 0.98, TABLA[1] + 0.2, 0.6, 0, 0.3);
+    persona(cam, out, W_K, PAL.x + 0.25, -200.0, f, f < 419 ? "stand" : "fist", f < 419 ? "stern" : "shout", { look: 0 });
+    for (let k = 0; k < 5; k++) persona(cam, out, W_A[k % 3], PAL.x - 2.3 + k * 1.15 + (k > 1 ? 0.3 : 0) - (k === 2 ? 1.0 : 0) * 0, -200.9 - (k === 2 ? 0.5 : 0), f, "stand", f < 436 ? "stern" : "grin", { look: k < 2 ? 1 : -1 });
+    for (let k = 0; k < 6; k++) persona(cam, out, W_A[(k + 1) % 3], PAL.x - 2.9 + k * 1.15, -201.9, f, "stand", "stern", {});
+    for (let k = 0; k < 7; k++) persona(cam, out, W_A[(k + 2) % 3], PAL.x - 3.4 + k * 1.15, -203.0, f, "stand", "neutral", { shadow: false });
+    const n = Math.round(2800 * smooth((f - 428) / 20) / 10) * 10;
+    icon(out, cam, f, 428, `hombres${n}`, 560, 240, (p) => fxCartel(p, "HOMBRES", n.toLocaleString("es-AR"), "#b8322f"), PAL.x + 0.2, D0 + 3.55, -201.5, 2.2, 0, 0.05);
   }
-  if (id === 9) {
-    const dz = MZ - 12 + 0.6, dy = D0 + 3.66;
-    gato(cam, out, f, MX + 0.1, dz + 1.4, { mode: "stand", expr: f < 628 ? "smile" : f < 649 ? "neutral" : "shock", look: f < 628 ? 0 : 1 }, 1.1, dy);
-    persona(cam, out, W_O, MX + 1.0, dz + 0.2, f, "stand", f < 640 ? "grin" : "laugh", { y: dy, look: -1 });
-    icon(out, cam, f, 640, "bismarck", 560, 240, (p) => fxCartel(p, "HUNDIÓ AL", "BISMARCK", "#b8322f"), MX + 0.1, dy + 1.25, dz + 1.0, 1.0, 0, 0.05);
+  if (id === 8) {
+    const [cx, cz] = CANONES[1];
+    persona(cam, out, W_A[1], cx - 0.9, cz + 0.3, f, f < 474 ? "stand" : f < 480 ? "point" : "stand", f < 476 ? "grin" : f < 486 ? "shock" : "nervous", { yaw: f < 474 ? undefined : 0.9 });
+    icon(out, cam, f, 465, "sigloXVII", 560, 240, (p) => fxCartel(p, "CAÑÓN DEL", "SIGLO XVII", "#8a5a2a"), cx + 0.2, D0 + 1.9, cz - 0.4, 1.3, 0, 0.05);
+    if (f >= 476 && f < 496) { const u = q((f - 476) / 20, 20); fxAt(out, cam, `puff${u}`, 300, 300, (p) => fxPuff(p, u), cx + 0.05, D0 + 0.7, cz + 1.05 + u * 0.3, 0.7, 0.7, 0.2, 0, true); }
+    if (f >= 487) signo(out, cam, f, 487, "?", cx - 0.6, D0 + 1.95, cz + 0.3, 0.26);
   }
-  if (id === 10) {
-    if (f >= 714) humo(out, cam, f, 715, SHIP8[0], SHIP8[1], 12, 1.0, D0 + 3);
-    torpedo(out, cam, f, 714, SHIP8[0] - 0.8, SHIP8[1] + 1.8, 0.9);
-  }
-  if (id === 11) {
-    const mad = f >= 800;
-    enTabla(cam, out, f, { mode: mad ? "angry" : "stand", expr: f < 760 ? "neutral" : f < 800 ? "stern" : f < 818 ? "shout" : "stern", look: 0 });
-    if (f >= 802) icon(out, cam, f, 802, "miau", 520, 260, (p) => fxBocadillo(p, "¡MIAU!"), TABLA[0] + 0.12, D0 + 1.02, TABLA[1] + 0.1, 0.5, 0, 0.3);
-    if (f >= 820) icon(out, cam, f, 820, "sano", 520, 220, (p) => fxSello(p, "SANO", "#2f9a4a"), TABLA[0] - 0.2, D0 + 0.62, TABLA[1] + 0.35, 0.5, 0, 0.3);
+  if (id === 11) for (const [k, [x, z, , s]] of FLOTA.entries()) { andanada(out, cam, f, 589 + (k % 2) * 4, x, z, s); andanada(out, cam, f, 599 + ((k + 1) % 2) * 4, x, z, s); }
+  if (id === 12) {
+    const [gx, gz] = GLASGOW;
+    for (const [f0, dx, w] of [[616, -3, true], [626, 2.5, false], [634, -1, true], [641, 4, false], [648, -5, true]] as [number, number, boolean][])
+      explota(out, cam, f, f0, gx + dx, D0 + (w ? 0.2 : 2.2), gz + 1.6, 1.0, w);
+    humo(out, cam, f, 627, gx, gz, 10, 0.9, D0 + 2, 2);
   }
   if (id === 13) {
-    const z = TZ - 0.4;
-    gato(cam, out, f, MX, z, { mode: f < 921 ? "stand" : "sleep", expr: f < 921 ? "smile" : "smile_closed" }, 1.1, D0 + 0.12);
-    if (f >= 925) { const u = q(((f - 925) / 40) % 1, 20); fxAt(out, cam, `zzz${u}`, 300, 300, (p) => fxZzz(p, u), MX + 0.35, D0 + 0.85, z, 0.6, 0.6, 0.3); }
-    icon(out, cam, f, 937, "tierra", 560, 240, (p) => fxCartel(p, "TIERRA", "FIRME", "#2f9a4a"), MX - 0.05, D0 + 1.9, z - 1.2, 1.1, 0, 0.05);
+    for (const [f0, x, y] of [[659, PAL.x - 3, 5.0], [664, PAL.x + 3.5, 2.0], [670, PAL.x - 5.5, 8.0], [676, PAL.x + 1, 7.8], [680, MASTIL[0], 10.5], [686, MAR.x - 4, 6.5]] as [number, number, number][])
+      explota(out, cam, f, f0, x, D0 + y, PAL.z + 2.2, 1.5);
+    palacioArde(out, cam, f);
+  }
+  if (id === 14) {
+    palacioArde(out, cam, f);
+    const x = runX(f);
+    persona(cam, out, W_K, x, PASEO_Z, f, "run", f < 735 ? "shock" : "nervous", { yaw: -Math.PI / 2 + 0.95, sp: 2.6 });
+    for (const [f0, dx] of [[702, 4.5], [722, 6.5], [741, 3.0]] as [number, number][]) explota(out, cam, f, f0, x + dx, D0 + 0.4, PASEO_Z - 1.6, 0.8);
+    if (f >= 708) signo(out, cam, f, 708, "!", x - 0.2, D0 + 2.35, PASEO_Z, 0.3);
+  }
+  if (id === 16) {
+    palacioArde(out, cam, f, 0.75);
+    const bx = PAL.x - 0.3;
+    persona(cam, out, W_C, bx + 0.6, -201.2, f, f < 900 ? "stand" : "hold", f < 862 ? "smile" : f < 902 ? "grin" : "smile", { look: 1, turn: 0.35 });
+    persona(cam, out, W_A[0], bx - 0.55, -201.6, f, "stand", f < 936 ? "neutral" : "shock", { look: -1, turn: -0.25 });
+    persona(cam, out, W_A[2], bx - 1.45, -201.9, f, "stand", f < 938 ? "nervous" : "shock", { look: -1, turn: -0.2 });
+    if (f >= 841 && f < 900) signo(out, cam, f, 841, "!", bx + 0.75, D0 + 2.15, -201.2, 0.22);
+    if (f >= 902) {
+      const k = q(smooth((f - 902) / 26), 20);
+      fxAt(out, cam, `factura${k}`, 420, 760, (p) => fxFactura(p, k), bx + 0.05, D0 + 0.74, -200.85, 0.78, 1.41, 0.2);
+    }
+    if (f >= 937) { signo(out, cam, f, 937, "!", bx - 0.55, D0 + 2.15, -201.6, 0.22); signo(out, cam, f, 939, "!", bx - 1.45, D0 + 2.15, -201.9, 0.22); }
   }
 };
 
@@ -400,4 +428,5 @@ export const stage = (id: number, f: number, cam: CamInfo): Stage => {
   fn(id, f, cam, out);
   return out;
 };
-void bodyFront; void bodySide; void sit; void walk; void ondas; void yawTo; void RZ; void CALLE; void fxShadow; void NOINK; void fxBurst; void INK; void SKINS; void puff; void fxStars; void fxPuff; void lin; void fxOndas; void CALLE; void ondas; void boing; void fxSello; void CUARTO_X; void OFICINA_X; void MESA_Z;
+void bodyFront; void bodySide; void sit; void walk; void RZ; void CALLE; void fxShadow; void NOINK; void fxBurst; void INK; void SKINS; void puff; void fxStars;
+void lin; void fxOndas; void CUARTO_X; void OFICINA_X; void MESA_Z; void clamp01; void fxBocadillo; void fxSigno; void CONS; void stand; void smooth;

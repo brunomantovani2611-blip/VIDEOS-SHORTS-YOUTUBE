@@ -11,6 +11,7 @@ import { TONE, CHAR, LFB, untone } from "./shade";
 import { NOINK } from "./ink";
 import { Pool, Actor, Fx, stage } from "./cast";
 import { Figura, buildProp, animProp } from "./figura3d";
+import { costa, salonTrono, arenaTex } from "./costa";
 /** personajes como muñecos 3D (true) o como tarjetas dibujadas (false) */
 export const FIG3D = true;
 import { FPS, D0, SHOTS, camAt, V3, ShotDef, BACK_Z, Decoy, decoysAt, RIO_Z0, RIO_Z1, TZ, CALLE, CUARTO_X, OFICINA_X, PLATO_X, MESA_Z, RZ } from "./story";
@@ -280,19 +281,15 @@ const campo = (b: Batch, wb: Batch, cx: number) => {
 
 const buildSets = (R: THREE.Object3D) => {
   const b = new Batch(), wb = new Batch();
-  campo(b, wb, CALLE[0]);
+  costa(b, wb);
+  void campo;
   b.build(R); wb.build(R, false);
   void calle;
 
   const o = new Batch();
   const oro = lam("oro", () => ({ color: "#e8b84a" })), rojo = lam("rojoTrono", () => ({ color: "#2f6ab8" }));
-  room(o, CUARTO_X, 8, 4.6, lam("salonGriego", () => ({ map: rep(palacioTex(), 2, 1) })), lam("pisoGriego", () => ({ map: rep(pisoMarmolTex(), 4, 4) })));
-  if (TRONO) {
-    o.add(boxGeo(V(CUARTO_X - 0.6, D0, BACK_Z - 0.9), V(CUARTO_X + 0.6, D0 + 0.25, BACK_Z - 0.2)), oro);
-    o.add(boxGeo(V(CUARTO_X - 0.42, D0 + 0.25, BACK_Z - 0.75), V(CUARTO_X + 0.42, D0 + 0.62, BACK_Z - 0.3)), rojo);
-    o.add(boxGeo(V(CUARTO_X - 0.45, D0 + 0.25, BACK_Z - 0.32), V(CUARTO_X + 0.45, D0 + 1.9, BACK_Z - 0.22)), oro);
-    for (const sx of [-1, 1]) o.add(boxGeo(V(CUARTO_X + sx * 0.45 - 0.06, D0 + 0.25, BACK_Z - 0.75), V(CUARTO_X + sx * 0.45 + 0.06, D0 + 0.95, BACK_Z - 0.3)), oro);
-  }
+  salonTrono(o);
+  void oro; void rojo; void palacioTex; void pisoMarmolTex;
   room(o, OFICINA_X, 8, 4.6, lam("azulejoGriego", () => ({ map: rep(muroTex(), 2, 1) })), lam("pisoPiedra", () => ({ color: "#d9cfbc" })));
   room(o, PLATO_X, 8, 4, lam("platoAzul", () => ({ map: rep(platoTex(), 3, 1.5) })), lam("platoPiso", () => ({ color: "#14284a" })));
   o.build(R, false);
@@ -357,7 +354,8 @@ export class World {
 
     // ---- hierba en todo el mundo hasta el muelle, pared del muelle, fondo del mar ----
     const b = new Batch();
-    b.add(quadUp(-900, 900, -900, RIO_Z0, 450, 300, -0.04), lam("grassHD", () => ({ map: grassHD(), color: "#b4d47e" })));
+    b.add(quadUp(-900, 900, -900, RIO_Z0, 450, 300, -0.04), lam("arenaZanzibar", () => ({ map: arenaTex() })));
+    void grassHD;
     b.add(wallQuad(900, -900, RIO_Z0, 1), lam("quayWall", () => ({ map: stoneHD("quayWall", ["#b4aea2", "#aaa498", "#bfb9ad", "#a39d91"], "#8a8478") })));
     b.build(R);
     buildSets(R);

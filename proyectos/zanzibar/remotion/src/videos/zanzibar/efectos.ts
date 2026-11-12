@@ -592,3 +592,92 @@ export const fxMarcador = (p: Pen, a: string, b: string, la = "EMÚES", lb = "EJ
   text(p, la, 158, 78, Math.min(50, Math.floor(340 / la.length)), "#f4f1ea", 900); text(p, lb, 450, 78, Math.min(50, Math.floor(340 / lb.length)), "#f4f1ea", 900);
   text(p, a, 158, 190, 130, "#ffd34d", 900, 10); text(p, b, 450, 190, 130, "#e86a5a", 900, 10);
 };
+
+// ---------------- la guerra de los 38 minutos ----------------
+/** llamas (lienzo 300 x 400), t = 0..1 en bucle: tres lenguas que se mecen, naranja por fuera y amarillo adentro */
+export const fxFuego = (p: Pen, t: number) => {
+  const g = p.g, P = t * Math.PI * 2;
+  const lengua = (cx: number, h: number, w: number, ph: number, col: string, lw: number) => {
+    const sway = Math.sin(P + ph) * w * 0.35, top = 390 - h * (0.9 + 0.1 * Math.sin(P * 2 + ph));
+    g.beginPath(); g.moveTo(cx - w, 390);
+    g.bezierCurveTo(cx - w * 1.1, 390 - h * 0.45, cx - w * 0.2 + sway, 390 - h * 0.7, cx + sway * 1.4, top);
+    g.bezierCurveTo(cx + w * 0.3 + sway, 390 - h * 0.6, cx + w * 1.15, 390 - h * 0.4, cx + w, 390);
+    g.closePath(); g.fillStyle = col; g.fill();
+    if (lw) { g.lineWidth = lw; g.strokeStyle = "#2a1d24"; g.stroke(); }
+  };
+  lengua(150, 340, 120, 0, "#e8502a", 8); lengua(85, 230, 70, 1.7, "#e8502a", 7); lengua(215, 260, 75, 3.1, "#e8502a", 7);
+  lengua(150, 250, 80, 0.4, "#f59a2a", 0); lengua(90, 160, 45, 2.0, "#f59a2a", 0); lengua(212, 180, 48, 3.4, "#f59a2a", 0);
+  lengua(150, 150, 46, 0.8, "#ffe066", 0);
+  for (let i = 0; i < 4; i++) { const u = (t + i / 4) % 1; p.ell(150 + Math.sin(i * 2.3 + P) * 80, 330 - u * 330, 9 * (1 - u), 9 * (1 - u), "#ffd34d", 0); }
+};
+/** cronómetro grande (lienzo 400 x 460): aguja que da vueltas y los minutos en el centro */
+export const fxCronometro = (p: Pen, min: number, col = "#d43f3f") => {
+  const g = p.g;
+  p.poly([[176, 14], [224, 14], [224, 60], [176, 60]], "#8a8e96", 8);
+  p.ell(200, 14 + 6, 40, 14, "#b8bcc6", 7);
+  for (const s of [-1, 1]) { g.save(); g.translate(200 + s * 128, 92); g.rotate(s * 0.7); p.poly([[-16, -18], [16, -18], [16, 18], [-16, 18]], "#8a8e96", 7); g.restore(); }
+  p.ell(200, 260, 184, 184, "#c9ccd6", 10);
+  p.ell(200, 260, 160, 160, "#fbf7ee", 6);
+  // la parte ya corrida, en rojo
+  const a0 = -Math.PI / 2, a1 = a0 + (Math.min(min, 60) / 60) * Math.PI * 2;
+  if (min > 0) { g.beginPath(); g.moveTo(200, 260); g.arc(200, 260, 150, a0, a1); g.closePath(); g.fillStyle = "rgba(212,63,63,.28)"; g.fill(); }
+  g.strokeStyle = "#2a1d24";
+  for (let k = 0; k < 60; k++) {
+    const a = (k / 60) * Math.PI * 2, r0 = k % 5 ? 140 : 124;
+    g.lineWidth = k % 5 ? 3 : 7; g.beginPath(); g.moveTo(200 + Math.cos(a) * r0, 260 + Math.sin(a) * r0); g.lineTo(200 + Math.cos(a) * 154, 260 + Math.sin(a) * 154); g.stroke();
+  }
+  text(p, String(Math.floor(min)), 200, 330, 92, col, 900);
+  text(p, "MIN", 200, 395, 30, "#2a1d24", 900);
+  g.lineWidth = 12; g.lineCap = "round"; g.strokeStyle = "#2a1d24";
+  g.beginPath(); g.moveTo(200, 260); g.lineTo(200 + Math.cos(a1) * 140, 260 + Math.sin(a1) * 140); g.stroke();
+  p.ell(200, 260, 16, 16, "#2a1d24", 0);
+};
+/** la factura de los cañonazos (lienzo 420 x 760): papel largo con renglones y el total abajo */
+export const fxFactura = (p: Pen, k = 1) => {
+  const g = p.g, H = 120 + 620 * k;
+  g.save(); g.beginPath(); g.rect(0, 0, 420, H + 20); g.clip();
+  p.poly([[30, 14], [390, 14], [390, H], [30, H]], "#fbf7ee", 8);
+  text(p, "FACTURA", 210, 64, 52, "#2a1d24", 900);
+  text(p, "H.M. GOBIERNO BRITÁNICO", 210, 104, 20, "#5a5e6a", 900);
+  const items = ["Cañonazo", "Cañonazo", "Cañonazo", "Cañonazo grande", "Cañonazo", "Cañonazo", "Bala de ametralladora", "Cañonazo", "Cañonazo", "Cañonazo"];
+  for (let i = 0; i < items.length; i++) {
+    const y = 156 + i * 46;
+    if (y > H - 110) break;
+    g.font = `700 22px ${FONT}`; g.textAlign = "left"; g.textBaseline = "middle"; g.fillStyle = "#2a1d24"; g.fillText(items[i], 52, y);
+    g.textAlign = "right"; g.fillText("£ " + (i % 3 ? 15 : 40), 368, y);
+    g.strokeStyle = "rgba(42,29,36,.18)"; g.lineWidth = 2; g.beginPath(); g.moveTo(52, y + 20); g.lineTo(368, y + 20); g.stroke();
+  }
+  if (k > 0.85) { text(p, "TOTAL", 130, H - 54, 40, "#2a1d24", 900); text(p, "£££", 300, H - 54, 52, "#d43f3f", 900); }
+  g.restore();
+};
+/** pergamino del ultimátum (lienzo 460 x 560) */
+export const fxUltimatum = (p: Pen) => {
+  p.poly([[50, 40], [410, 40], [410, 520], [50, 520]], "#f4e6c4", 8);
+  for (const y of [40, 520]) { p.ell(230, y, 200, 22, "#e2cfa4", 8); }
+  text(p, "ULTIMÁTUM", 230, 120, 50, "#b8322f", 900);
+  const g = p.g; g.strokeStyle = "rgba(42,29,36,.35)"; g.lineWidth = 6;
+  for (let i = 0; i < 4; i++) { g.beginPath(); g.moveTo(90, 190 + i * 44); g.lineTo(370 - (i % 2) * 50, 190 + i * 44); g.stroke(); }
+  text(p, "HASTA LAS", 230, 384, 38, "#2a1d24", 900); text(p, "9:00", 230, 444, 64, "#2a1d24", 900);
+  p.ell(350, 470, 34, 34, "#b8322f", 6);
+};
+/** bandera blanca (lienzo 300 x 300) que flamea */
+export const fxBanderaBlanca = (p: Pen, t: number) => {
+  const g = p.g, P = t * Math.PI * 2;
+  p.poly([[40, 20], [52, 20], [52, 290], [40, 290]], "#8a5a34", 6);
+  g.beginPath(); g.moveTo(52, 34);
+  for (let x = 52; x <= 270; x += 12) g.lineTo(x, 34 + Math.sin(P + x / 40) * 12 * (x - 52) / 218);
+  for (let x = 270; x >= 52; x -= 12) g.lineTo(x, 164 + Math.sin(P + x / 40 + 0.5) * 12 * (x - 52) / 218);
+  g.closePath(); g.fillStyle = "#fbfbfd"; g.fill(); g.lineWidth = 7; g.strokeStyle = "#2a1d24"; g.stroke();
+};
+/** la bandera británica (lienzo 600 x 360) */
+export const fxUnion = (p: Pen) => {
+  const g = p.g;
+  g.save(); g.beginPath(); g.rect(20, 20, 560, 320); g.clip();
+  g.fillStyle = "#1e2a6a"; g.fillRect(20, 20, 560, 320);
+  g.lineCap = "butt";
+  for (const [w, c] of [[64, "#fbf7ee"], [22, "#c8202a"]] as [number, string][]) { g.strokeStyle = c; g.lineWidth = w; g.beginPath(); g.moveTo(20, 20); g.lineTo(580, 340); g.moveTo(580, 20); g.lineTo(20, 340); g.stroke(); }
+  g.fillStyle = "#fbf7ee"; g.fillRect(250, 20, 100, 320); g.fillRect(20, 130, 560, 100);
+  g.fillStyle = "#c8202a"; g.fillRect(270, 20, 60, 320); g.fillRect(20, 150, 560, 60);
+  g.restore();
+  g.lineWidth = 9; g.strokeStyle = "#2a1d24"; g.strokeRect(20, 20, 560, 320);
+};

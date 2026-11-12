@@ -1,4 +1,4 @@
-"""Sonido del short de Sam, el gato insumergible: música original y efectos sintetizados (sin bibliotecas con licencia), colocados en su
+"""Sonido del short de la guerra de los 38 minutos (Zanzíbar, 1896): música original y efectos sintetizados (sin bibliotecas con licencia), colocados en su
 cuadro exacto, y mezcla con la voz: voz al frente, música y efectos 5-10 dB por debajo, -14 LUFS al final.
 
 Uso:  python sonido.py   ->  musica.wav, efectos.wav, mezcla.wav (48 kHz, estéreo)
@@ -14,7 +14,7 @@ from scipy import signal
 AQUI = os.path.dirname(os.path.abspath(__file__))
 SR = 48000
 FPS = 30
-TOTAL = 990
+TOTAL = 1000
 N = int(round(TOTAL / FPS * SR))
 rng = np.random.default_rng(1912)
 fr = lambda f: f / FPS
@@ -232,16 +232,16 @@ def nocturno(m, t0, t1, g=1.0):
 
 def musica():
     m = np.zeros((2, N))
-    sigilo(m, 0.0, fr(124), 0.9)                                       # el Bismarck se hunde
-    triste(m, fr(124), fr(209), 0.8)                                   # los tripulantes
-    tranquilo(m, fr(209), fr(396), 0.9)                                # el gato en la tabla, el rescate, Oscar
-    sigilo(m, fr(396), fr(541), 0.95, bpm=138)                         # el submarino, el Cossack se hunde
-    marcha(m, fr(541), fr(666), 0.75, drum=False)                      # el Ark Royal
-    sigilo(m, fr(666), fr(741), 0.95, bpm=138)                         # tres semanas después
-    marcha(m, fr(741), fr(903), 0.9)                                   # flotando, enojado; Sam el insumergible
-    tranquilo(m, fr(903), fr(962), 0.8)                                # tierra firme
-    put(m, suave(pizz(NOTE(-12), 0.9)), fr(964), 0.9)
-    put(m, chord(0, "M", 1.0), fr(964), 0.5)
+    marcha(m, 0.0, fr(122), 0.85, bpm=120)                             # la costa: la guerra más corta
+    triste(m, fr(122), fr(163), 0.7)                                   # murió el sultán
+    sigilo(m, fr(163), fr(354), 0.95, bpm=126)                         # Khalid se sienta; sin permiso; ultimátum
+    nocturno(m, fr(354), fr(411), 0.8)                                 # el reloj avanza
+    marcha(m, fr(411), fr(521), 0.8, bpm=126, melody=False)            # tres mil hombres, cañones, un solo barco
+    sigilo(m, fr(558), fr(759), 1.0, bpm=150)                          # fuego, el barco, el palacio, la huida
+    marcha(m, fr(759), fr(839), 0.9, bpm=132)                          # 38 minutos: fin
+    sigilo(m, fr(839), fr(962), 0.85, bpm=120)                         # la cuenta
+    put(m, suave(pizz(NOTE(-12), 0.9)), fr(966), 0.9)
+    put(m, chord(0, "M", 1.0), fr(966), 0.5)
     return m
 
 
@@ -337,48 +337,96 @@ def efectos(words):
         x = lp(noise(dur), 900) * (0.6 + 0.4 * np.sin(2 * np.pi * 0.25 * t)) * np.minimum(1, t / 0.4) * np.minimum(1, (dur - t) / 0.4)
         put(s, x * g, t0)
 
-    # el Bismarck
-    olas(0, fr(124))
-    for f0 in (30, 52, 83):
-        put(s, boom(0.45), fr(f0)); put(s, chapuzon(0.12), fr(f0 + 3))
-    put(s, gemido(0.14, 3.0), fr(80))
-    put(s, pop(0.2), fr(128)); put(s, pop(0.2), fr(132)); put(s, pop(0.22), fr(134)); put(s, pop(0.22), fr(166))
-    for f0 in range(136, 158, 3):
-        put(s, ding(1400, 0.03, 0.08), fr(f0))
-    for f0 in range(170, 192, 3):
-        put(s, ding(1100, 0.03, 0.08), fr(f0))
-    # el gato en la tabla
-    olas(fr(209), fr(366 - 209))
-    put(s, ding(587, 0.08, 0.4), fr(216))
-    put(s, miau(0.06, 0.4), fr(232))
-    put(s, boing(0.1, 300), fr(345)); put(s, thud(0.12, 200, 0.1), fr(355))
-    put(s, pop(0.2), fr(368)); put(s, pop(0.2), fr(371)); put(s, pop(0.22), fr(380)); put(s, ronroneo(0.8, 0.05), fr(381))
-    # el Cossack
-    olas(fr(396), fr(541 - 396))
-    put(s, bp(noise(0.6), 800, 2400) * np.hanning(ns(0.6)) * 0.05, fr(418))
-    put(s, bp(noise(0.6), 300, 1200) * np.hanning(ns(0.6)) * 0.06, fr(440))
-    put(s, boom(0.55), fr(455)); put(s, chapuzon(0.16), fr(457))
-    put(s, gemido(0.14, 2.0), fr(470))
-    put(s, thud(0.35, 90, 0.25), fr(508)); put(s, ding(784, 0.1) + ding(1046, 0.07), fr(509))
-    # el Ark Royal
-    olas(fr(541), fr(741 - 541), 0.025)
-    put(s, pop(0.22), fr(640)); put(s, miau(0.05, 0.35), fr(650))
-    put(s, bp(noise(0.6), 300, 1200) * np.hanning(ns(0.6)) * 0.06, fr(696))
-    put(s, boom(0.6), fr(714)); put(s, chapuzon(0.16), fr(716))
-    put(s, gemido(0.16, 2.0), fr(722))
-    # enojado pero sano
-    olas(fr(741), fr(833 - 741))
-    put(s, miau(0.14, 0.6), fr(802)); put(s, pop(0.18), fr(802))
-    put(s, thud(0.35, 90, 0.25), fr(820)); put(s, ding(784, 0.1) + ding(1046, 0.07), fr(821))
-    put(s, pop(0.22), fr(866))
-    for f0 in range(866, 900, 9):
-        put(s, boing(0.06, 280), fr(f0))
-    put(s, thud(0.3, 90, 0.3), fr(866)); put(s, ding(784, 0.12) + ding(1046, 0.08), fr(868)); put(s, ding(1318, 0.06), fr(868))
-    # tierra firme
-    put(s, ronroneo(fr(990 - 921), 0.06), fr(921))
-    put(s, pop(0.2), fr(937))
-    for f0 in (124, 209, 283, 366, 396, 497, 541, 603, 666, 741, 833, 903):
-        put(s, swish(0.5, 0.1, 500, 3000), fr(f0) - 0.25, pan=rng.uniform(-0.3, 0.3))
+    def tic(g=0.05, hi=True):
+        return bp(noise(0.03), 2500 if hi else 1500, 5000 if hi else 3200) * env(ns(0.03), 0.0005, 0.012) * g
+
+    def campana(g=0.12, f0=330, dur=2.5):
+        n = ns(dur); t = np.arange(n) / SR
+        x = sum(h * np.sin(2 * np.pi * f0 * k * t) * np.exp(-t * (1.2 + k * 0.7)) for k, h in ((1, 1), (2.01, 0.5), (2.76, 0.35), (4.07, 0.2)))
+        return lp(x, 3000) * np.minimum(1, t / 0.003) * g
+
+    def cascote(g=0.1):
+        return lp(noise(0.5), 1800) * env(ns(0.5), 0.002, 0.18) * g
+
+    def fuego_crep(t0, dur, g=0.02):
+        t = t0
+        while t < t0 + dur:
+            put(s, bp(noise(0.015), 1500, 5000) * env(ns(0.015), 0.0005, 0.006) * g * rng.uniform(0.4, 1.2), t, pan=rng.uniform(-0.4, 0.4))
+            t += rng.uniform(0.02, 0.09)
+        n = ns(dur); tt = np.arange(n) / SR
+        put(s, lp(noise(dur), 400) * np.minimum(1, tt / 0.5) * np.minimum(1, (dur - tt) / 0.4) * g * 1.4, t0)
+
+    def gaviota(t0, g=0.03):
+        for k in range(2):
+            n = ns(0.28); tt = np.arange(n) / SR
+            f = 1600 - 700 * tt / 0.28
+            put(s, bp(np.sin(2 * np.pi * np.cumsum(f) / SR), 900, 2400) * env(n, 0.03, 0.15) * g, t0 + k * 0.35, pan=0.4)
+
+    # la costa
+    olas(0, fr(163), 0.03)
+    gaviota(fr(20)); gaviota(fr(70), 0.025)
+    put(s, pop(0.22), fr(84)); put(s, ding(784, 0.08) + ding(1046, 0.05), fr(86))
+    # murió el sultán: la bandera baja
+    put(s, campana(0.07, 196, 3.0), fr(139))
+    put(s, pop(0.18), fr(142))
+    # el salón del trono
+    pasos(167, 197, 8, 0.06, 180)
+    put(s, pop(0.2), fr(176))
+    put(s, thud(0.12, 110, 0.15), fr(210))
+    put(s, thud(0.3, 90, 0.25), fr(229)); put(s, ding(784, 0.1) + ding(1046, 0.07), fr(230))
+    # sin permiso, el ultimátum
+    put(s, pop(0.2), fr(254)); put(s, pop(0.2), fr(258))
+    put(s, thud(0.35, 90, 0.25), fr(268)); put(s, ding(392, 0.08), fr(269))
+    put(s, swish(0.4, 0.08, 400, 2000), fr(330)); put(s, thud(0.25, 120, 0.2), fr(335))
+    # el reloj: tic tac cada vez más rápido
+    f = 356.0
+    while f < 411:
+        put(s, tic(0.07, int(f) % 2 == 0), fr(f))
+        f += max(4.0, 15 - (f - 356) * 0.2)
+    # el ejército y los cañones
+    olas(fr(411), fr(558 - 411), 0.025)
+    pasos(413, 455, 7, 0.07, 140)
+    for f0 in range(430, 450, 3):
+        put(s, ding(1100, 0.025, 0.08), fr(f0))
+    put(s, pop(0.18), fr(465))
+    put(s, thud(0.12, 160, 0.2), fr(476)); put(s, lp(noise(0.4), 900) * env(ns(0.4), 0.01, 0.15) * 0.08, fr(477))
+    put(s, boing(0.07, 160), fr(479)); put(s, thud(0.08, 220, 0.08), fr(492))
+    put(s, ding(587, 0.06, 0.4), fr(487))
+    gaviota(fr(500), 0.03)
+    # las nueve y dos
+    for f0 in (521, 528):
+        put(s, tic(0.07), fr(f0))
+    put(s, campana(0.22, 262, 3.2), fr(536)); put(s, campana(0.16, 262, 2.5), fr(548))
+    # cinco buques abren fuego
+    for k in range(5):
+        for f0 in (589 + (k % 2) * 4, 599 + ((k + 1) % 2) * 4):
+            put(s, boom(0.4, 1.2), fr(f0 + k * 0.6), pan=-0.6 + k * 0.3)
+    # el Glasgow
+    for f0, w in ((616, True), (626, False), (634, True), (641, False), (648, True)):
+        put(s, boom(0.45, 1.3), fr(f0)); put(s, chapuzon(0.14 if w else 0.06), fr(f0 + 2))
+    put(s, gemido(0.14, 2.0), fr(628))
+    # el palacio arde
+    for f0 in (659, 664, 670, 676, 680, 686):
+        put(s, boom(0.5, 1.4), fr(f0)); put(s, cascote(0.08), fr(f0 + 4))
+    put(s, swish(0.6, 0.08, 300, 1500), fr(681)); put(s, thud(0.25, 80, 0.4), fr(692))
+    fuego_crep(fr(662), fr(759 - 662), 0.025)
+    # la huida
+    pasos(699, 757, 5, 0.07, 200)
+    for f0 in (702, 722, 741):
+        put(s, boom(0.3, 1.0), fr(f0)); put(s, cascote(0.06), fr(f0 + 3))
+    put(s, pop(0.18), fr(708)); put(s, pop(0.15), fr(730))
+    # 38 minutos
+    for f0 in range(762, 788, 2):
+        put(s, tic(0.05), fr(f0))
+    put(s, ding(1046, 0.1, 0.6), fr(788))
+    put(s, thud(0.3, 90, 0.3), fr(819)); put(s, ding(784, 0.12) + ding(1046, 0.08), fr(820)); put(s, ding(1318, 0.06), fr(822))
+    # la cuenta
+    fuego_crep(fr(839), fr(1000 - 839), 0.015)
+    put(s, pop(0.18), fr(841))
+    put(s, bp(noise(0.9), 800, 4000) * np.linspace(1, 0.3, ns(0.9)) * 0.05, fr(902))
+    put(s, thud(0.3, 90, 0.25), fr(936)); put(s, boing(0.08, 200), fr(937)); put(s, pop(0.18), fr(938))
+    for f0 in (122, 163, 252, 307, 354, 411, 460, 493, 521, 558, 614, 655, 695, 759, 839):
+        put(s, swish(0.5, 0.08, 500, 3000), fr(f0) - 0.25, pan=rng.uniform(-0.3, 0.3))
     return s
 
 

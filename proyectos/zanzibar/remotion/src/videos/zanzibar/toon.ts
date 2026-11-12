@@ -26,6 +26,8 @@ export type Outfit = {
   conejo?: boolean; spots?: string; whip?: boolean; plume?: string;
   /** Sam: el muñeco es un gato (jacket = pelaje, pants = pecho y patas) */
   gato?: boolean;
+  /** Zanzíbar: turbante (color), daga khanjar en la faja, escarapela del bicornio (null = sin), fusil al hombro */
+  turban?: string; khanjar?: boolean; cockade?: string | null; bisht?: string;
 };
 type P2 = [number, number];
 

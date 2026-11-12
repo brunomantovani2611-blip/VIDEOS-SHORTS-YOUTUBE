@@ -91,6 +91,19 @@ export class Figura {
     add(this.body, SPH, o2.dress ?? o2.jacket, [0, 1.15, 0], [0.27 * bw, 0.12, 0.25 * bw]);
     if (o2.sash) add(this.body, CYL, o2.sash, [0, 0.98, 0], [0.285 * bw, 0.07, 0.265 * bw], [0, 0, 0.25]);
     if (o2.belt) add(this.body, CYL, o2.belt, [0, 0.62, 0], [0.3 * bw, 0.06, 0.28 * bw]);
+    if (o2.bisht) {
+      // capa abierta (bisht) con ribete dorado: abierta adelante, cae de los hombros hasta las rodillas
+      const bp = add(this.body, CYL, o2.bisht, [0, 0.72, -0.01], [0.33 * bw, 0.9, 0.31 * bw]);
+      bp.geometry = new THREE.CylinderGeometry(0.88, 1.12, 1, 28, 1, true, 0.5, Math.PI * 2 - 1.0);
+      bp.material = (bp.material as THREE.Material).clone(); (bp.material as THREE.Material).side = THREE.DoubleSide;
+      for (const s of [-1, 1]) add(this.body, BOX, "#e8c45a", [s * Math.sin(0.5) * 0.31 * bw, 0.72, Math.cos(0.5) * 0.31 * bw], [0.03, 0.9, 0.02], [0, 0, -s * 0.08]);
+    }
+    if (o2.khanjar) {
+      add(this.body, CYL, "#c9a24a", [0, 0.66, 0.2], [0.3 * bw, 0.045, 0.1]);
+      const kh = add(this.body, TOR, "#e8c45a", [0.02, 0.56, 0.31], [0.09, 0.12, 0.09], [0, 0, 0.5]);
+      kh.geometry = new THREE.TorusGeometry(1, 0.32, 8, 16, Math.PI * 0.75);
+      add(this.body, SPH, "#e8c45a", [-0.04, 0.68, 0.31], [0.05, 0.05, 0.04]);
+    }
     if (o2.buttons && !o2.dress) for (let i = 0; i < 3; i++) add(this.body, SPH, o2.buttons, [0, 0.72 + i * 0.13, 0.27 * bw], [0.025, 0.025, 0.02]);
     if (o2.cape) add(this.body, BOX, o2.cape, [0, 0.7, -0.27 * bw], [0.6 * bw, 0.95, 0.03], [0.08, 0, 0]);
     // brazos
@@ -150,7 +163,31 @@ export class Figura {
       add(this.head, CYL, "#fbf7ee", [0, hr * 0.62, 0], [hr * 1.02, hr * 0.12, hr * 1.02]);
       add(this.head, CYL, "#1e2440", [0, hr * 0.68, 0], [hr * 0.9, hr * 0.08, hr * 0.9]);
     }
-    if (hat === "bicorne") bicornio(this.head, hr, o2.cap ?? "#1e1c22", o2.plume);
+    if (hat === "bicorne") bicornio(this.head, hr, o2.cap ?? "#1e1c22", o2.plume, o2.cockade === undefined ? true : o2.cockade);
+    if (hat === "turban") {
+      // turbante omaní: varias vueltas de tela, un poco más alto atrás, con la punta suelta a un lado
+      const tc = o2.turban ?? "#fbf7ee", tc2 = shadeHex(tc, 0.86);
+      add(this.head, HALF, o2.hair ?? "#2a1d14", [0, 0.04, -0.02], [hr * 1.04, hr * 0.9, hr * 1.0], [-0.25, 0, 0]);
+      for (let k = 0; k < 4; k++) {
+        const t = add(this.head, TOR, k % 2 ? tc2 : tc, [0, hr * (0.52 + k * 0.16), -0.02 - k * 0.012], [hr * (1.0 - k * 0.1), hr * (1.0 - k * 0.1), hr * 1.3], [Math.PI / 2 - 0.12, 0, 0]);
+        t.geometry = new THREE.TorusGeometry(1, 0.2, 10, 32);
+      }
+      add(this.head, SPH, tc, [0, hr * 0.98, -0.05], [hr * 0.68, hr * 0.32, hr * 0.66]);
+      add(this.head, CAP, tc2, [hr * 0.78, hr * 0.62, -hr * 0.4], [0.05, 0.1, 0.04], [0.3, 0, -0.5]);
+    }
+    if (hat === "fez") {
+      const fz = add(this.head, CYL, o2.cap ?? "#b8282e", [0, hr * 0.92, -0.02], [hr * 0.6, hr * 0.62, hr * 0.6]);
+      fz.geometry = new THREE.CylinderGeometry(0.85, 1, 1, 24);
+      add(this.head, CYL, "#2a1d24", [0, hr * 1.24, -0.02], [0.03, 0.03, 0.03]);
+      add(this.head, CAP, "#2a1d24", [hr * 0.35, hr * 1.02, -hr * 0.3], [0.025, 0.12, 0.025], [0.2, 0, -0.5]);
+    }
+    if (hat === "pith") {
+      // salacot blanco de oficial colonial
+      add(this.head, HALF, o2.cap ?? "#f4efe2", [0, hr * 0.38, -0.01], [hr * 1.12, hr * 1.12, hr * 1.2]);
+      add(this.head, CYL, o2.cap ?? "#f4efe2", [0, hr * 0.42, 0.02], [hr * 1.45, 0.025, hr * 1.55]);
+      add(this.head, CYL, o2.band ?? "#2f4a8a", [0, hr * 0.5, -0.01], [hr * 1.13, hr * 0.1, hr * 1.21]);
+      add(this.head, SPH, "#e8c45a", [0, hr * 1.48, -0.01], [0.04, 0.04, 0.04]);
+    }
     if (hat === "shako") {
       const sk = add(this.head, CYL, o2.cap ?? "#1e1c22", [0, hr * 0.98, 0], [hr * 0.78, hr * 0.95, hr * 0.78]);
       sk.geometry = new THREE.CylinderGeometry(1.08, 0.92, 1, 24);
@@ -493,6 +530,9 @@ export class Figura {
       this.body.position.y = Math.abs(Math.sin(P * 4)) * 0.05;
     }
     if (run) { this.arms[0].rotation.z = -0.9; this.arms[1].rotation.z = 0.9; }
+    if (op.mode === "point") { this.arms[1].rotation.x = -1.35 - Math.sin(P * 2) * 0.08; this.arms[1].rotation.z = 0.25; }
+    if (op.mode === "fist") { this.arms[1].rotation.x = -0.4; this.arms[1].rotation.z = 2.6 + Math.sin(P * 6) * 0.25; this.arms[0].rotation.z = -0.25; }
+    if (op.mode === "hold") { this.arms[0].rotation.x = -1.1; this.arms[1].rotation.x = -1.1; this.arms[0].rotation.z = 0.15; this.arms[1].rotation.z = -0.15; }
     if (op.mode === "whip") {
       this.arms[1].rotation.x = -0.5 - Math.sin(P) * 0.6; this.arms[1].rotation.z = 2.3 + Math.sin(P) * 0.45;
       this.arms[0].rotation.z = -0.5;
@@ -524,12 +564,13 @@ const slouch = (g: THREE.Object3D, hr: number, col: string, band: string) => {
 };
 
 /** bicornio «en bataille» (las puntas a los lados) con escarapela tricolor y pluma opcional */
-const bicornio = (g: THREE.Object3D, hr: number, col: string, plume?: string) => {
+const bicornio = (g: THREE.Object3D, hr: number, col: string, plume?: string, cockade: boolean | string | null = true) => {
   const h = add(g, HALF, col, [0, hr * 0.62, -0.02], [hr * 1.75, hr * 0.95, hr * 0.42]);
   h.geometry = new THREE.SphereGeometry(1, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2);
   add(g, CYL, col, [0, hr * 0.68, -0.02], [hr * 0.86, hr * 0.32, hr * 0.8]);
   add(g, BOX, "#c9a24a", [0, hr * 0.64, hr * 0.38], [hr * 3.2, hr * 0.06, 0.01]);
-  for (const [c, r] of [["#2f4a9a", 0.17], ["#fbf7ee", 0.12], ["#d8323a", 0.07]] as [string, number][]) add(g, SPH, c, [hr * 0.75, hr * 1.05, hr * 0.38 + (0.17 - r) * 0.1], [hr * r, hr * r, 0.012]);
+  if (cockade === true) for (const [c, r] of [["#2f4a9a", 0.17], ["#fbf7ee", 0.12], ["#d8323a", 0.07]] as [string, number][]) add(g, SPH, c, [hr * 0.75, hr * 1.05, hr * 0.38 + (0.17 - r) * 0.1], [hr * r, hr * r, 0.012]);
+  if (typeof cockade === "string") add(g, SPH, cockade, [hr * 0.75, hr * 1.05, hr * 0.38], [hr * 0.16, hr * 0.16, 0.012]);
   if (plume) add(g, SPH, plume, [0, hr * 1.55, -0.02], [hr * 1.2, hr * 0.22, hr * 0.3]);
 };
 
@@ -626,6 +667,48 @@ export const buildProp = (kind: string) => {
       }
     }
   } else if (kind === "acorazado" || kind === "destructor" || kind === "portaaviones") barco(g, kind);
+  else if (kind === "crucero" || kind === "canonero" || kind === "glasgow") buque1896(g, kind);
+  else if (kind === "dhow") dhow(g);
+  else if (kind === "canon") {
+    // cañón de bronce del siglo XVII en una cureña de madera gastada (la boca mira a +z)
+    const BR = "#b8863a", BR2 = "#9a6a2a", WD = "#7a5432", WD2 = "#5e3e24";
+    for (const sx of [-1, 1]) add(g, BOX, WD, [sx * 0.24, 0.36, -0.05], [0.09, 0.42, 1.1], [0.12, 0, 0]);
+    add(g, BOX, WD2, [0, 0.22, -0.05], [0.5, 0.12, 0.9]);
+    for (const z of [0.35, -0.5]) for (const sx of [-1, 1]) {
+      add(g, CYL, WD2, [sx * 0.33, 0.2, z], [0.2, 0.06, 0.2], [0, 0, Math.PI / 2]);
+      add(g, CYL, "#3a3a40", [sx * 0.37, 0.2, z], [0.08, 0.02, 0.08], [0, 0, Math.PI / 2]);
+    }
+    const tubo = new THREE.Group(); tubo.position.set(0, 0.62, 0.05); tubo.rotation.x = -0.12; g.add(tubo);
+    add(tubo, CYL, BR, [0, 0, 0.1], [0.16, 1.5, 0.16], [Math.PI / 2, 0, 0]).geometry = new THREE.CylinderGeometry(0.75, 1, 1, 20);
+    for (const z of [-0.45, 0.2, 0.78]) add(tubo, CYL, BR2, [0, 0, z], [0.17, 0.06, 0.17], [Math.PI / 2, 0, 0]);
+    add(tubo, CYL, BR, [0, 0, 0.86], [0.15, 0.1, 0.15], [Math.PI / 2, 0, 0]);
+    add(tubo, CYL, "#2a1d24", [0, 0, 0.91], [0.08, 0.02, 0.08], [Math.PI / 2, 0, 0]);
+    add(tubo, SPH, BR, [0, 0, -0.68], [0.12, 0.12, 0.12]);
+    // telaraña y óxido verde
+    add(tubo, SPH, "#6aa08a", [0.08, 0.1, 0.4], [0.06, 0.03, 0.12]);
+    add(tubo, SPH, "#6aa08a", [-0.1, 0.06, -0.2], [0.05, 0.03, 0.09]);
+    // pila de balas
+    for (const [x, y, z] of [[0.55, 0.1, -0.3], [0.72, 0.1, -0.3], [0.63, 0.1, -0.15], [0.63, 0.24, -0.25]]) add(g, SPH, "#3a3a40", [x, y, z], [0.1, 0.1, 0.1]);
+  } else if (kind === "bala") add(g, SPH, "#3a3a40", [0, 0, 0], [0.11, 0.11, 0.11]);
+  else if (kind === "mastil") {
+    // mástil sobre la terraza con la bandera roja lisa del sultán (grupo "flag", se baja a media asta)
+    add(g, CYL, "#f4efe2", [0, 3.0, 0], [0.07, 6.0, 0.07]);
+    add(g, SPH, "#e8c45a", [0, 6.05, 0], [0.13, 0.13, 0.13]);
+    add(g, CYL, "#f4efe2", [0, 0.15, 0], [0.3, 0.3, 0.3]);
+    const fl = new THREE.Group(); fl.name = "flag"; fl.position.set(0, 5.85, 0); g.add(fl);
+    bandera(fl, 2.4, 1.5, ["#c8202a"]);
+  } else if (kind === "bandera") {
+    add(g, CYL, "#f4efe2", [0, 2.0, 0], [0.05, 4.0, 0.05]);
+    const fl = new THREE.Group(); fl.position.set(0, 3.9, 0); g.add(fl);
+    bandera(fl, 1.8, 1.2, ["#1e1c22", "#fbf7ee", "#c8202a"]);
+  } else if (kind === "reloj") {
+    // las agujas del reloj de la torre (la esfera está pintada en world.ts); origen en el centro de la esfera
+    const hm = new THREE.Group(); hm.name = "hh"; g.add(hm);
+    add(hm, BOX, "#1e1c22", [0, 0.32, 0.03], [0.11, 0.7, 0.04]);
+    const mm = new THREE.Group(); mm.name = "mm"; g.add(mm);
+    add(mm, BOX, "#1e1c22", [0, 0.5, 0.06], [0.07, 1.05, 0.04]);
+    add(g, CYL, "#c9a24a", [0, 0, 0.09], [0.1, 0.05, 0.1], [Math.PI / 2, 0, 0]);
+  }
   else if (kind === "tabla") {
     add(g, BOX, "#8a5a34", [0, 0.02, 0], [1.15, 0.08, 0.42]);
     add(g, BOX, "#6a4424", [0.3, 0.065, 0], [0.04, 0.01, 0.42]);
@@ -704,8 +787,101 @@ const barco = (g: THREE.Group, kind: string) => {
     add(g, BOX, "#2a3a4a", [-1.88, 5.0, 1.5], [0.02, 0.4, 3.0]);
   }
 };
+/** bandera flameando: tiras verticales encadenadas (nombre "flagseg"), colores en franjas horizontales de arriba abajo */
+const bandera = (g: THREE.Object3D, w: number, h: number, cols: string[], ensign = false) => {
+  const n = 6, sw = w / n;
+  let par: THREE.Object3D = g;
+  for (let k = 0; k < n; k++) {
+    const seg = new THREE.Group(); seg.name = "flagseg"; seg.position.set(k ? sw : 0.06, 0, 0); par.add(seg);
+    cols.forEach((c, i) => add(seg, BOX, c, [sw / 2, -h * (i + 0.5) / cols.length, 0], [sw * 1.02, h / cols.length, 0.02]));
+    if (ensign) {
+      // enseña blanca británica: cruz roja y el cantón azul arriba a la izquierda
+      if (k === 3) add(seg, BOX, "#c8202a", [sw / 2, -h / 2, 0.012], [sw * 0.5, h, 0.012]);
+      add(seg, BOX, "#c8202a", [sw / 2, -h / 2, 0.014], [sw * 1.02, h * 0.16, 0.012]);
+      if (k < 3) add(seg, BOX, "#1e2a5a", [sw / 2, -h * 0.22, 0.016], [sw * 1.02, h * 0.42, 0.012]);
+      if (k < 3) add(seg, BOX, "#fbf7ee", [sw / 2, -h * 0.22, 0.02], [sw * 1.02, h * 0.07, 0.012]);
+    }
+    par = seg;
+  }
+};
+/** barcos de 1896: crucero británico (casco negro, franja blanca, chimeneas color ante, dos palos con cofas),
+ *  cañonera (casco blanco, una chimenea) y el Glasgow, el yate del sultán (blanco y oro, tres palos, bandera roja) */
+const buque1896 = (g: THREE.Group, kind: string) => {
+  const BUFF = "#d8a85a", NEG = "#26242a", BL = "#f4efe2", MAD = "#b89a6a", ORO = "#e0b44a";
+  const palo = (z: number, h: number, w: number, top = true) => {
+    add(g, CYL, "#5a4030", [0, h / 2, z], [0.09, h, 0.09]);
+    for (const [y, k] of [[h * 0.62, 1], [h * 0.86, 0.7]] as [number, number][]) add(g, CYL, "#5a4030", [0, y, z], [0.05, w * k, 0.05], [0, 0, Math.PI / 2]);
+    if (top) { add(g, CYL, NEG, [0, h * 0.55, z], [0.32, 0.2, 0.32]); add(g, CYL, NEG, [0, h * 0.48, z], [0.12, 0.2, 0.12]); }
+  };
+  if (kind === "crucero") {
+    casco(g, 21, 3.6, 2.1, NEG, MAD, "#8a2a2a");
+    add(g, BOX, BL, [0, 1.75, -0.6], [3.62, 0.22, 15]);
+    // espolón
+    add(g, BOX, NEG, [0, 0.3, 10.6], [0.5, 0.5, 1.3], [0.3, 0, 0]);
+    // superestructura, puente y botes
+    add(g, BOX, BL, [0, 2.65, 0.4], [2.2, 1.1, 7.5]);
+    add(g, BOX, BL, [0, 3.5, 3.6], [2.8, 0.12, 1.2]);
+    add(g, BOX, "#3a4a5a", [0, 3.25, 4.12], [1.6, 0.35, 0.05]);
+    for (const z of [1.3, -1.6]) { add(g, CYL, BUFF, [0, 4.6, z], [0.62, 3.6, 0.7]); add(g, CYL, NEG, [0, 6.45, z], [0.6, 0.25, 0.68]); }
+    for (const sx of [-1, 1]) for (const z of [-0.2, 2.6]) { add(g, BOX, BL, [sx * 1.35, 3.35, z], [0.45, 0.32, 1.6]); add(g, CYL, NEG, [sx * 1.15, 3.6, z], [0.04, 0.6, 0.04]); }
+    palo(5.2, 11, 4.5); palo(-6.4, 9.5, 3.8);
+    // cañones: proa, popa y de costado
+    for (const [z, d] of [[7.4, 1], [-8.0, -1]] as [number, number][]) { add(g, CYL, "#5a5e66", [0, 2.45, z], [0.6, 0.6, 0.6]); add(g, CYL, "#3a3a40", [0, 2.6, z + d * 1.1], [0.11, 1.8, 0.11], [Math.PI / 2, 0, 0]); }
+    for (const sx of [-1, 1]) for (const z of [-4, -1, 2, 5]) { add(g, CYL, "#3a3a40", [sx * 1.95, 1.45, z], [0.1, 0.9, 0.1], [0, 0, Math.PI / 2]); add(g, BOX, NEG, [sx * 1.8, 1.45, z], [0.15, 0.5, 0.6]); }
+    const en = new THREE.Group(); en.position.set(0, 4.6, -10.0); g.add(en); add(g, CYL, "#5a4030", [0, 3.4, -10.0], [0.05, 2.6, 0.05]); bandera(en, 2.0, 1.2, [BL], true);
+    for (let k = 0; k < 12; k++) add(g, SPH, "#e8e0c8", [1.82, 2.25, -8 + k * 1.3], [0.04, 0.12, 0.12]);
+    for (let k = 0; k < 12; k++) add(g, SPH, "#e8e0c8", [-1.82, 2.25, -8 + k * 1.3], [0.04, 0.12, 0.12]);
+  } else if (kind === "canonero") {
+    casco(g, 15, 2.8, 1.7, BL, MAD, "#2a6a3a");
+    add(g, BOX, BUFF, [0, 1.45, -0.4], [2.82, 0.14, 10]);
+    add(g, BOX, BL, [0, 2.2, 0.3], [1.6, 0.9, 4.0]);
+    add(g, BOX, BL, [0, 2.85, 1.8], [2.2, 0.1, 0.9]);
+    add(g, CYL, BUFF, [0, 3.6, -0.5], [0.52, 3.0, 0.58]); add(g, CYL, NEG, [0, 5.15, -0.5], [0.5, 0.2, 0.56]);
+    palo(3.6, 8.5, 3.2); palo(-4.6, 7, 2.6, false);
+    for (const [z, d] of [[5.0, 1], [-5.6, -1]] as [number, number][]) { add(g, CYL, "#5a5e66", [0, 1.95, z], [0.45, 0.4, 0.45]); add(g, CYL, "#3a3a40", [0, 2.05, z + d * 0.85], [0.08, 1.4, 0.08], [Math.PI / 2, 0, 0]); }
+    const en = new THREE.Group(); en.position.set(0, 3.6, -7.0); g.add(en); add(g, CYL, "#5a4030", [0, 2.6, -7.0], [0.04, 2.2, 0.04]); bandera(en, 1.6, 1.0, [BL], true);
+  } else {
+    casco(g, 18, 3.0, 1.9, BL, MAD, "#b8322f");
+    add(g, BOX, ORO, [0, 1.55, -0.4], [3.04, 0.12, 12.5]);
+    add(g, BOX, ORO, [0, 0.55, -0.4], [3.04, 0.06, 13]);
+    add(g, BOX, BL, [0, 2.4, -0.6], [1.9, 1.0, 6.0]);
+    add(g, BOX, ORO, [0, 2.92, -0.6], [2.0, 0.06, 6.1]);
+    for (let k = 0; k < 6; k++) for (const sx of [-1, 1]) add(g, SPH, "#3a4a5a", [sx * 0.96, 2.45, -3 + k], [0.02, 0.16, 0.2]);
+    add(g, CYL, BUFF, [0, 3.7, 0.4], [0.45, 2.6, 0.5]); add(g, CYL, NEG, [0, 5.0, 0.4], [0.44, 0.15, 0.49]);
+    palo(5.2, 10, 4.0, false); palo(1.8, 10.5, 4.2, false); palo(-4.5, 9, 3.6, false);
+    // bauprés y mascarón dorado
+    add(g, CYL, "#5a4030", [0, 2.4, 9.8], [0.06, 3.0, 0.06], [1.2, 0, 0]);
+    add(g, SPH, ORO, [0, 1.6, 9.1], [0.18, 0.3, 0.3]);
+    // banderas rojas del sultán en el tope de cada palo
+    for (const z of [5.2, 1.8, -4.5]) { const fl = new THREE.Group(); fl.position.set(0, z === 1.8 ? 10.5 : z === 5.2 ? 10 : 9, z); fl.rotation.y = -Math.PI / 2; g.add(fl); bandera(fl, 1.4, 0.85, ["#c8202a"]); }
+    const en = new THREE.Group(); en.position.set(0, 3.8, -8.4); en.rotation.y = -Math.PI / 2; g.add(en); add(g, CYL, "#5a4030", [0, 2.9, -8.4], [0.04, 2.0, 0.04]); bandera(en, 1.5, 0.95, ["#c8202a"]);
+  }
+};
+/** dhow de madera con la vela latina triangular (proa a +z) */
+const dhow = (g: THREE.Group) => {
+  const sh = new THREE.Shape(); sh.moveTo(-0.9, -3.0); sh.lineTo(0.9, -3.0); sh.lineTo(1.0, 0.6); sh.quadraticCurveTo(0.6, 2.4, 0, 3.6); sh.quadraticCurveTo(-0.6, 2.4, -1.0, 0.6); sh.closePath();
+  const hull = new THREE.ExtrudeGeometry(sh, { depth: 1.0, bevelEnabled: false }); hull.rotateX(Math.PI / 2); hull.translate(0, 0.75, 0);
+  const hm = new THREE.Mesh(hull, M("#9a6a3a")); hm.castShadow = hm.receiveShadow = true; g.add(hm);
+  add(g, BOX, "#7a5030", [0, 0.72, -0.2], [1.8, 0.06, 5.8]);
+  add(g, BOX, "#c9a070", [0, 0.6, -0.2], [2.02, 0.12, 6.2]).scale.set(2.02, 0.12, 6.0);
+  add(g, BOX, "#7a5030", [0, 1.1, -2.7], [1.7, 0.8, 0.6]);
+  add(g, CYL, "#6a4424", [0, 3.0, 0.6], [0.07, 4.6, 0.07], [0.12, 0, 0]);
+  // verga inclinada y la vela triangular
+  add(g, CYL, "#6a4424", [0, 4.2, 0.2], [0.05, 7.0, 0.05], [1.05, 0, 0]);
+  const vs = new THREE.Shape(); vs.moveTo(0, 0); vs.lineTo(0, 3.6); vs.lineTo(-6.0, 0.7); vs.closePath();
+  const vela = new THREE.Mesh(new THREE.ShapeGeometry(vs), M("#f2e8d0")); vela.material = (vela.material as THREE.Material).clone(); (vela.material as THREE.Material).side = THREE.DoubleSide;
+  vela.rotation.y = -Math.PI / 2; vela.position.set(0.08, 1.3, 2.9); vela.rotation.x = 0; vela.castShadow = true; g.add(vela);
+};
 /** animación de la utilería: puerta de la jaula (open 0..1), ruedas y patas de los caballos (t = cuadro, moving) */
 export const animProp = (g: THREE.Object3D, kind: string, open: number, t: number, moving: boolean) => {
+  let fi = 0;
+  g.traverse((o) => { if (o.name === "flagseg") { o.rotation.y = Math.sin(t * 0.21 - fi * 0.9 + (fi > 5 ? 1.3 : 0)) * 0.22; fi++; } });
+  if (kind === "mastil") { const fl = g.getObjectByName("flag"); if (fl) fl.position.y = 5.85 - open * 5.2; }
+  if (kind === "reloj") {
+    const h = g.getObjectByName("hh"), m = g.getObjectByName("mm");
+    if (h) h.rotation.z = -((open / 60) % 12) / 12 * Math.PI * 2;
+    if (m) m.rotation.z = -(open % 60) / 60 * Math.PI * 2;
+  }
   if (kind === "jaula") { const d = g.getObjectByName("door"); if (d) d.rotation.x = -open * 1.9; }
   if (kind === "carruaje") {
     let i = 0;
