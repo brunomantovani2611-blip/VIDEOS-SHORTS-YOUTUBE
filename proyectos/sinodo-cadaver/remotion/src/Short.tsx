@@ -5,6 +5,7 @@ import PAL from "./palabras.json";
 export const FPS = 30;
 export const FRAMES = 570;
 const INK = "#1b1a1f";
+void 0;
 const FONT = "Impact, 'Arial Black', 'DejaVu Sans', sans-serif";
 const BG = "#f3ecda";
 const E = Easing;
@@ -18,71 +19,7 @@ const bump = (t: number, t0: number, d = 0.25) => (t < t0 || t > t0 + d ? 0 : Ma
 export const T = { knockA: 6.15, guilty: 11.15, splash: 13.45, jail: 14.2, end: 17.4 };
 const GROUND = 1450;
 
-type Pose = { armL: [number, number]; armR: [number, number]; legL: [number, number]; legR: [number, number]; tilt: number; mouth: number; brow: number; sad: number; look: number };
-const P0: Pose = { armL: [-20, 10], armR: [20, -10], legL: [-8, 4], legR: [10, -4], tilt: 0, mouth: 0, brow: 0, sad: 0, look: 0 };
-
-type Outfit = "pope" | "corpse" | "deacon";
-const Fig: React.FC<{ x: number; y: number; s: number; flip?: boolean; rot?: number; outfit: Outfit; seated?: boolean; p: Pose }> = ({ x, y, s, flip, rot = 0, outfit, seated, p }) => {
-  const S: [number, number] = [0, -190];
-  const arm = (a: [number, number]) => {
-    const e = seg(S[0], S[1], a[0], 105);
-    const h = seg(e[0], e[1], a[0] + a[1], 95);
-    return `M${S[0]},${S[1]} L${e[0]},${e[1]} L${h[0]},${h[1]}`;
-  };
-  const leg = (a: [number, number]) => {
-    const k = seg(0, 0, a[0], 100);
-    const f = seg(k[0], k[1], a[0] + a[1], 100);
-    return `M0,0 L${k[0]},${k[1]} L${f[0]},${f[1]} L${f[0] + 34},${f[1]}`;
-  };
-  const robe = outfit === "pope" ? "#8a3a55" : outfit === "corpse" ? "#d9c98e" : "#7e8190";
-  const trim = outfit === "deacon" ? "#c9c9d4" : "#d2a932";
-  const hem = seated ? 0 : -8;
-  const headFill = outfit === "corpse" ? "#e3e9d6" : "#fff";
-  return (
-    <g transform={`translate(${x},${y}) rotate(${rot}) scale(${flip ? -s : s},${s})`} stroke={INK} strokeWidth={18} strokeLinecap="round" strokeLinejoin="round" fill="none">
-      <path d={leg(p.legL)} />
-      <path d={leg(p.legR)} />
-      <path d={`M0,-200 Q0,-100 0,0`} />
-      {/* túnica */}
-      <path d={seated ? `M-36,-196 L36,-196 L52,0 L-52,0 Z` : `M-34,-196 L34,-196 L74,${hem - 40} L-74,${hem - 40} Z`} fill={robe} strokeWidth={14} />
-      <path d={`M-10,-196 L10,-196 L${seated ? 12 : 16},${hem - 40} L${seated ? -12 : -16},${hem - 40} Z`} fill={trim} strokeWidth={8} />
-      <path d={arm(p.armL)} />
-      <path d={arm(p.armR)} />
-      <g transform={`translate(0,-270) rotate(${p.tilt})`}>
-        {outfit === "pope" || outfit === "corpse" ? (
-          <>
-            <path d="M-56,-40 L-30,-150 Q0,-172 30,-150 L56,-40 Z" fill={outfit === "corpse" ? "#efe3b0" : "#f2e2a8"} strokeWidth={12} />
-            <path d="M-58,-44 L58,-44" strokeWidth={16} stroke={trim} />
-            <path d="M0,-132 L0,-92 M-12,-114 L12,-114" strokeWidth={8} stroke="#b23a48" />
-          </>
-        ) : (
-          <path d="M-46,-38 Q0,-100 46,-38 Z" fill="#4a4a55" strokeWidth={10} />
-        )}
-        <circle r={70} fill={headFill} />
-        {outfit === "corpse" ? (
-          <g strokeWidth={9}>
-            <path d="M-38,-26 L-12,-4 M-12,-26 L-38,-4" />
-            <path d="M12,-26 L38,-4 M38,-26 L12,-4" />
-            <path d="M-4,8 L0,18 L4,8" strokeWidth={6} />
-            <path d="M-34,38 L34,38 M-22,32 L-22,44 M-8,32 L-8,44 M8,32 L8,44 M22,32 L22,44" strokeWidth={6} />
-          </g>
-        ) : (
-          <>
-            <circle cx={-24 + p.look * 7} cy={-8} r={8} fill={INK} stroke="none" />
-            <circle cx={24 + p.look * 7} cy={-8} r={8} fill={INK} stroke="none" />
-            <path d={`M-42,${-30 + p.brow * -6 + p.sad * -8} L-8,${-26 + p.brow * 10 - p.sad * 6}`} strokeWidth={8} />
-            <path d={`M42,${-30 + p.brow * -6 + p.sad * -8} L8,${-26 + p.brow * 10 - p.sad * 6}`} strokeWidth={8} />
-            {p.sad > 0 ? (
-              <path d={`M-26,${42} Q0,${42 - 22 * p.sad} 26,42`} strokeWidth={8} />
-            ) : (
-              <ellipse cx={0} cy={36} rx={18} ry={4 + p.mouth * 22} fill={INK} stroke="none" />
-            )}
-          </>
-        )}
-      </g>
-    </g>
-  );
-};
+import { Fig, P0, Pose, INK as INK2 } from "./Fig";
 
 const Throne: React.FC<{ x: number; seat: number }> = ({ x, seat }) => (
   <g stroke={INK} strokeWidth={14} strokeLinejoin="round">
@@ -176,7 +113,7 @@ export const Short: React.FC = () => {
     mouth: t > 5.2 && t < 7.2 ? 0.5 + 0.4 * Math.abs(Math.sin(t * 14)) : 0,
     brow: 1,
   };
-  const corpse: Pose = { ...P0, armL: [-60, 5], armR: [58, -4], legL: [-82, 82], legR: [-90, 90], tilt: t > 7.4 && t < 10.3 ? ip(t, [7.6, 9.0], [0, 24]) : t > 10.3 ? 14 : -2 };
+  const corpse: Pose = { ...P0, armL: [-14, 4], armR: [14, -4], legL: [-82, 82], legR: [-90, 90], tilt: t > 7.4 && t < 10.3 ? ip(t, [7.6, 9.0], [0, 24]) : t > 10.3 ? 14 : -2 };
   // diácono
   const deaconX = 320;
   const trem = Math.sin(t * 40) * 1.6;
