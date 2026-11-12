@@ -25,5 +25,5 @@ Enero del 897, Roma: el papa Esteban VI manda desenterrar a su antecesor Formoso
 
 ## Notas de producción
 - Escenas 1–2: clips C01 y C02 (aprobados previamente). Escenas 3–6: clips C03–C06 generados en Google Flow (Veo 3.1 Lite, 9:16, 8 s, descarga 1080p).
-- Los clips descargados de Flow traen una marca «Veo» y un destello en la esquina inferior derecha; sigue visible en el video final.
+- Los clips de Flow traen una marca «Veo» abajo a la derecha; se eliminó con un zoom uniforme de ~10 % (recorte de la esquina) aplicado a todas las escenas.
 - El audio original de los clips va muy bajo como ambiente bajo la voz; no se agregaron efectos de sonido aparte.
